@@ -1,0 +1,6 @@
+# name: Comment in line
+# key: ccc
+# --
+/**
+  * $0
+  **/

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: for (ptr = base; ptr < base + sizeof(base); ++ptr)
+# key: foreachv
+# --
+for ($1 = $2; $1 < $1 + sizeof($2) ; ++$1){
+$0
+}

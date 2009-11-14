@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: lim = base + TAM ; for (ptr = base; ptr < lim; ++ptr)
+# key: foreachp
+# --
+$1 = $2 + $3;
+for($4 = $2; $4 < $1 ; ++$4){
+$0
+}

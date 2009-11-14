@@ -1,0 +1,941 @@
+;Time-stamp: <11/13/2009 23:36:02>
+
+(defvar time-format "%02m/%02d/%Y %02H:%02M:%02S"
+  "Variable which store the time format string")
+
+
+(defun add-subdirs-to-load-path (dir)
+  "Recursive add directories to `load-path'."
+  (let ((default-directory (file-name-as-directory dir)))
+    (add-to-list 'load-path dir)
+    (normal-top-level-add-subdirs-to-load-path)))
+
+(add-subdirs-to-load-path "~/.emacs.d/site-lisp")
+(load-file "~/.emacs.d/site-lisp/cedet/common/cedet.elc")
+
+
+
+
+(defconst my-doxymacs-JavaDoc-function-comment-template
+ '((let ((next-func (doxymacs-find-next-func)))
+     (if next-func
+         (list
+          'l
+          "/** " '> 'n
+          " * " (doxymacs-doxygen-command-char) "author "
+          (user-full-name) '> 'n
+          " * " (doxymacs-doxygen-command-char) "date   "
+          (format-time-string time-format) '> 'n
+          " * " (doxymacs-doxygen-command-char) "brief " 'p '> 'n
+          " * " (doxymacs-doxygen-command-char) "details " 'p '> 'n
+          " * " '> 'n
+          (doxymacs-parm-tempo-element (cdr (assoc 'args next-func)))
+          (unless (string-match
+                   (regexp-quote (cdr (assoc 'return next-func)))
+                   doxymacs-void-types)
+            '(l " * " > n " * " (doxymacs-doxygen-command-char)
+                "return " (p "Returns: ") > n))
+          " */" '>)
+       (progn
+         (error "Can't find next function declaration.")
+         nil))))
+ "Customized JavaDoc-style template for function documentation.")
+
+
+
+
+(defconst my-doxymacs-JavaDoc-file-comment-template
+ '("/**" > n
+   " * " (doxymacs-doxygen-command-char) "file   "
+   (if (buffer-file-name)
+       (file-name-nondirectory (buffer-file-name))
+     "") > n
+   " * " (doxymacs-doxygen-command-char) "author "
+   (user-full-name) > n
+   " * " (doxymacs-doxygen-command-char) "date   "
+   (format-time-string time-format) > n
+   " * " > n
+   " * " (doxymacs-doxygen-command-char) "brief  "
+   (p "Brief description of this file: ") > n
+   " * " > n
+   " * " p > n
+   " */" > n)
+ "Default JavaDoc-style template for file documentation.")
+
+
+
+
+;; *****************************************************************************
+;; Customization variables
+;; *****************************************************************************
+
+
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(ac-auto-start 3)
+ '(ac-dwim t)
+ '(ac-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode cc-mode c++-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode js2-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode asm-mode)))
+ '(backup-directory-alist (quote (("*" . "~/.emacs.d/cache"))))
+ '(column-number-mode t)
+ '(dabbrev-case-replace nil)
+ '(develock-max-column-plist (quote (emacs-lisp-mode 80 lisp-interaction-mode w change-log-mode t texinfo-mode t c-mode 80 c++-mode 80 java-mode 80 jde-mode 80 html-mode 80 html-helper-mode 80 cperl-mode 80 perl-mode 80 mail-mode t message-mode t cmail-mail-mode t tcl-mode 80 ruby-mode 80)))
+ '(display-time-mode t)
+ '(doxymacs-file-comment-template my-doxymacs-JavaDoc-file-comment-template)
+ '(doxymacs-function-comment-template my-doxymacs-JavaDoc-function-comment-template)
+ '(ecb-auto-activate t)
+ '(ecb-layout-window-sizes (quote (("left8" (ecb-directories-buffer-name 0.1676300578034682 . 0.2926829268292683) (ecb-sources-buffer-name 0.1676300578034682 . 0.21951219512195122) (ecb-methods-buffer-name 0.1676300578034682 . 0.2926829268292683) (ecb-history-buffer-name 0.1676300578034682 . 0.17073170731707318)))))
+ '(ecb-maximize-next-after-maximized-select (quote (ecb-history-buffer-name ecb-sources-buffer-name ecb-directories-buffer-name)))
+ '(ecb-options-version "2.40")
+ '(ecb-primary-secondary-mouse-buttons (quote mouse-1--C-mouse-1))
+ '(ecb-source-path (quote ("~/")))
+ '(ecb-stealthy-tasks-delay 7)
+ '(ecb-tip-of-the-day nil)
+ '(ecb-vc-enable-support t)
+ '(ecb-winman-winring-name "ECB")
+ '(ede-project-placeholder-cache-file "~/.emacs.d/cache/.projects.ede")
+ '(ediff-split-window-function (quote split-window-horizontally))
+ '(eshell-directory-name "~/.emacs.d/cache")
+ '(explicit-shell-file-name "bash")
+ '(ffap-url-fetcher (quote w3m-browse-url))
+ '(fill-column 76)
+ '(filladapt-token-table (quote (("^" beginning-of-line) (">+" citation->) ("\\(\\w\\|[0-9]\\)[^'`\"<
+]*>[    ]*" supercite-citation) (";+" lisp-comment) ("#+" sh-comment) ("%+" postscript-comment) ("^[    ]*\\(//\\|\\*\\)[^      ]*" c++-comment) ("@c[ \\t]" texinfo-comment) ("@comment[       ]" texinfo-comment) ("\\\\item[         ]" bullet) ("[0-9]+\\.[         ]" bullet) ("[0-9]+\\(\\.[0-9]+\\)+[    ]" bullet) ("[A-Za-z]\\.[       ]" bullet) ("(?[0-9]+)[         ]" bullet) ("(?[A-Za-z])[       ]" bullet) ("[0-9]+[A-Za-z]\\.[         ]" bullet) ("(?[0-9]+[A-Za-z])[         ]" bullet) ("[-~*+]+[   ]" bullet) ("o[         ]" bullet) ("[\\@]\\(param\\|throw\\|exception\\|addtogroup\\|defgroup\\)[      ]*[A-Za-z_][A-Za-z_0-9]*[       ]+" bullet) ("[\\@][A-Za-z_]+[  ]*" bullet) ("[         ]+" space) ("$" end-of-line))))
+ '(font-lock-maximum-decoration t)
+ '(font-lock-mode t t (font-lock))
+ '(gdb-cpp-define-alist-program "cc -E  -")
+ '(gdb-find-source-frame t)
+ '(gdb-many-windows t)
+ '(gdb-same-frame nil)
+ '(gdb-show-main t)
+ '(gdb-speedbar-auto-raise t)
+ '(global-semantic-idle-summary-mode t nil (semantic-idle))
+ '(global-semantic-idle-tag-highlight-mode t nil (semantic-idle))
+ '(global-semantic-stickyfunc-mode nil nil (semantic-util-modes))
+ '(gnus-nntp-server "quimby.gnus.org")
+ '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
+ '(gud-tooltip-mode t)
+ '(ido-save-directory-list-file "~/.emacs.d/cache/.ido.last")
+ '(indent-tabs-mode nil)
+ '(inhibit-startup-screen t)
+ '(line-number-mode t)
+ '(make-backup-files nil)
+ '(muse-project-alist (quote (("WikiPlanner" ("~/plans" :default "index" :major-mode planner-mode :visit-link planner-visit-link)))))
+ '(paren-mode (quote sexp) nil (paren))
+ '(paren-sexp-mode (quote match))
+ '(password-cache-expiry 600)
+ '(query-replace-highlight t)
+ '(require-final-newline t)
+ '(search-highlight t)
+ '(semantic-idle-scheduler-work-idle-time 15)
+ '(semanticdb-default-save-directory "~/.emacs.d/cache")
+ '(semanticdb-default-system-save-directory "~/.emacs.d/cache")
+ '(shell-file-name "bash")
+ '(time-stamp-format time-format)
+ '(timeclock-get-workday-function (quote askworkday))
+ '(timeclock-modeline-display t nil (timeclock))
+ '(timeclock-use-display-time t nil (time))
+ '(timeclock-workday 32400)
+ '(tooltip-mode t)
+ '(tramp-auto-save-directory "~/.emacs.d/cache")
+ '(tramp-persistency-file-name "~/.emacs.d/cache/tramp")
+ '(tramp-remote-path (quote (tramp-default-remote-path "/home/revargas/" "/opt/sunstudio10/SUNWspro/prod/bin" "/usr/sbin" "/usr/local/bin" "/local/bin" "/local/freeware/bin" "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin" "/usr/bin")))
+ '(tramp-verbose 3)
+ '(transient-mark-mode t)
+ '(user-full-name "Roberto Vargas Caballero")
+ '(user-mail-address "roberto@nemesis.com")
+ '(winring-prompt-on-create nil)
+ '(winring-show-names t)
+ '(yas/root-directory (quote ("~/.emacs.d/yasnippets" "~/.emacs.d/site-lisp/yasnippet/snippets")) nil (yasnippet))
+ '(yas/triggers-in-field t))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
+ '(fringe ((((class color) (background light)) (:background "gray75"))))
+ '(highlight-80+ ((((background light)) (:background "orange"))))
+ '(highline-face ((t (:background "LightBlue1"))))
+ '(hl-line ((t (:background "LightBlue1"))))
+ '(paren-face-match ((t (:background "light grey")))))
+
+
+
+
+
+
+
+
+
+;; *****************************************************************************
+;; ECB
+;; *****************************************************************************
+
+;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
+;      windows  is selected  I want  the ECB  windos stay  selected  and not
+;      changes to the source windows
+
+(require 'ecb)
+(ecb-winman-winring-enable-support)     ;Must be called before of requiring
+                                        ;winring
+
+(global-set-key [f2] 'ecb-toggle-ecb-windows)
+(global-set-key [f3] '(lambda()
+                        (interactive)
+                        (my-winring-jump-to-configuration "ECB")))
+
+
+
+
+
+;; *****************************************************************************
+;; CEDET configuration.
+;; *****************************************************************************
+
+
+
+(require 'semantic-load)
+(require 'semanticdb-system)
+(require 'semantic-ia)
+(require 'semantic-gcc)
+(require 'semanticdb-global)
+
+
+
+(setq semantic-load-turn-everything-on t)
+(semantic-load-enable-excessive-code-helpers)
+
+
+;; enable ctags for some languages:
+;;  Unix Shell, Perl, Pascal, Tcl, Fortran, Asm
+(semantic-load-enable-primary-exuberent-ctags-support)
+
+(global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
+
+(which-function-mode t)
+
+;Customization of srecode. I will back over srecode some day
+;; '(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
+;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
+;; "~/.emacs.d/srecode/")))
+;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
+
+
+(global-set-key "\C-\M-g" 'semantic-complete-jump)
+(global-set-key "\C-\M-b" 'semantic-complete-jump-local)
+(global-set-key "\C-\M-d" 'semantic-ia-fast-jump)
+(global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
+(global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
+(global-set-key "\C-\M-t" 'senator-completion-menu-popup)
+(global-set-key [ (control meta <) ] 'semantic-mrub-switch-tags)
+
+
+
+
+
+;; *****************************************************************************
+;; Files
+;; *****************************************************************************
+
+
+(require 'jka-compr)
+(require 'ido)
+(ido-mode t)
+(icomplete-mode t)
+
+;convert a buffer from dos ^M end of lines to unix end of lines
+(defun dos2unix ()
+  (interactive)
+    (goto-char (point-min))
+      (while (search-forward "\r" nil t) (replace-match "")))
+
+;vice versa
+(defun unix2dos ()
+  (interactive)
+    (goto-char (point-min))
+      (while (search-forward "\n" nil t) (replace-match "\r\n")))
+
+
+
+(defun unix-file ()
+  "Change the current buffer to Latin 1 with Unix line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'iso-latin-1-unix t))
+
+
+(defun dos-file ()
+  "Change the current buffer to Latin 1 with DOS line-ends."
+  (interactive)
+  (set-buffer-file-coding-system 'iso-latin-1-dos t))
+
+
+
+
+(defun my-delete-trailing-whitespace ()
+  "Delete all trailing white spaces"
+  (interactive)
+  (delete-trailing-whitespace))
+
+(add-hook 'write-file-functions 'my-delete-trailing-whitespace)
+(add-hook 'write-file-functions 'time-stamp)
+(add-hook 'find-file-not-found-functions 'unix-file)
+
+(global-set-key "\C-\M-f" 'find-file-at-point)
+
+
+
+
+;; *****************************************************************************
+; doxymacs
+;; *****************************************************************************
+
+
+(require 'doxymacs)
+(require 'tempo)
+
+
+
+(defun my-inside-javadoc-comment ()
+  "Return t if the cursor is inside a comment."
+  (let* ((last (point))
+         (is-inside
+          (if (search-backward "*/" nil t)
+              ;; there are some comment endings - search forward
+              (if (search-forward "/**" last t)
+                  't
+                'nil)
+
+            ;; it's the only comment - search backward
+            (goto-char last)
+            (if (search-backward "/**" nil t)
+                't
+              'nil)
+            )
+          ))
+    (goto-char last)
+    is-inside))
+
+
+
+(defun my-javadoc-return ()
+  "Advanced C-m for Javadoc multiline comments.
+   Inserts `*' at the beggining of the new line if
+   unless return was pressed outside the comment"
+  (interactive)
+  (newline-and-indent)
+  (when (my-inside-javadoc-comment) (insert "* ")))
+
+
+
+(defun my-doxymacs-font-lock-hook ()
+   (if (or (eq major-mode 'c-mode)
+           (eq major-mode 'c++-mode))
+       (doxymacs-font-lock)))
+
+(add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
+
+
+
+
+;; *****************************************************************************
+;; C modes
+;; *****************************************************************************
+
+(require 'cc-mode)
+(require 'doxymacs)
+(require 'filladapt)
+(require 'develock)
+
+
+(defun my-c-mode ()
+  (doxymacs-mode)
+  (setq ac-override-local-map t)
+  (setq yas/fallback-behavior nil)
+  (local-set-key [tab]
+                 '(lambda nil
+                    (interactive)
+                    (yas/expand)
+                    (c-indent-line-or-region)
+                    (when (my-inside-javadoc-comment)
+                      (tempo-forward-mark))))
+  (local-set-key [C-tab] 'eassist-switch-h-cpp)
+  (add-to-list 'ac-omni-completion-sources
+               (cons "\\." '(ac-source-semantic)))
+  (add-to-list 'ac-omni-completion-sources
+               (cons "->" '(ac-source-semantic)))
+  (local-set-key [ ( return )]  'my-javadoc-return)
+  (setq ac-sources
+        '(ac-source-gtags
+          ac-source-c++-keywords
+          ac-source-yasnippet
+          ac-source-words-in-buffer))
+  (turn-on-filladapt-mode)
+  (auto-fill-mode t))
+
+
+(setq-mode-local c-mode
+                 semanticdb-find-default-throttle
+                 '(project unloaded recursive omniscience))
+
+
+
+;;;(srecode-minor-mode t)
+; if you want to enable support for gnu global -> CRASH!!!!
+;; (semanticdb-enable-gnu-global-databases 'c-mode)
+;; (semanticdb-enable-gnu-global-databases 'c++-mode)
+;  if you want to enable support for exuberant ctags <- Problems
+;; (semanticdb-enable-exuberent-ctags 'c-mode)
+;; (semanticdb-enable-exuberent-ctags 'c++-mode)
+
+;(semanticdb-load-ebrowse-caches
+
+(add-hook 'c-mode-hook 'my-c-mode)
+(add-hook 'c++-mode-hook 'my-c-mode)
+(setq auto-mode-alist
+       (append auto-mode-alist
+         '(("\\.pc$" . c-mode))))
+
+
+(require 'eassist)
+(setq eassist-header-switches
+      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
+        ("cpp" "h" "hpp") ("c" "h") ("C" "H")
+        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
+        ("pc h")))
+
+
+
+
+
+
+
+;; *****************************************************************************
+;; layout-restore
+;; *****************************************************************************
+
+
+(require 'layout-restore)
+
+(global-set-key [?\C-c ?l] 'layout-save-current)
+(global-set-key [?\C-c ?\C-l ?\C-l] 'layout-restore)
+(global-set-key [?\C-c ?\C-l ?\C-c] 'layout-delete-current)
+
+
+
+
+
+
+;; *****************************************************************************
+;; GUD
+;; *****************************************************************************
+
+(require 'gud)
+(require 'gdb-ui)
+(require 'highline)
+
+(global-set-key [f11] 'gdba)
+
+;; (add-hook 'pre-command-hook 'highline-unhighlight-current-line)
+;; (add-hook 'post-command-hook 'highline-highlight-current-line)
+
+(add-hook 'gdb-mode-hook
+          '(lambda ()
+             (my-winring-jump-to-configuration "GUD")
+             (define-key gud-mode-map [f5] 'gud-step)
+             (define-key gud-mode-map [f6] 'gud-next)
+             (define-key gud-mode-map [f7] 'gud-finish)
+             (define-key gud-mode-map [f8] 'gud-cont)
+             (define-key gud-mode-map [f9] 'gud-until)
+             (define-key gud-minor-mode-map [f5] 'gud-step)
+             (define-key gud-minor-mode-map [f6] 'gud-next)
+             (define-key gud-minor-mode-map [f7] 'gud-finish)
+             (define-key gud-minor-mode-map [f8] 'gud-cont)
+             (define-key gud-minor-mode-map [f9] 'gud-until)))
+
+
+
+
+
+
+
+;; *****************************************************************************
+;; Lisp
+;; *****************************************************************************
+
+(require 'compile)
+
+(defun autocompile nil
+  "compile itself if ~/.emacs"
+  (interactive)
+  (require 'bytecomp)
+  (if (or (string= (buffer-file-name)
+                   (expand-file-name (concat default-directory ".emacs")))
+          (string= (buffer-file-name)
+                   (expand-file-name (concat default-directory "init.el"))))
+      (byte-compile-file (buffer-file-name))))
+
+
+
+(defun my-open-dot-emacs ()
+  "Opening `~/.emacs.d/init.el'."
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
+
+
+;; (setq-mode-local lisp-interaction-mode
+;;                  semanticdb-find-default-throttle
+;;                  '(project unloaded recursive system omniscience))
+
+;; (setq-mode-local emacs-lisp-mode
+;;                  semanticdb-find-default-throttle
+;;                  '(project unloaded recursive system omniscience))
+
+(global-set-key "\C-ci" 'my-open-dot-emacs)
+
+
+(add-hook 'after-save-hook 'autocompile)
+
+(add-hook 'emacs-lisp-mode-hook
+             (lambda ()
+               (local-set-key [ ( return ) ] 'newline-and-indent)
+               (setq ac-sources
+                     '(ac-source-yasnippet
+                       ac-source-abbrev
+                       ac-source-words-in-buffer
+                       ac-source-symbols))))
+
+
+
+
+;; *****************************************************************************
+;; window stuff
+;; *****************************************************************************
+
+
+;TODO: C-M-n -> next buffer
+;TODO: C-M-p -> previous buffer
+;TODO: M-p -> C-M-up
+;TODO: M-n -> C-M-down
+
+
+(defun select-next-window ()
+  "Switch to the next window"
+  (interactive)
+  (select-window (next-window)))
+
+(defun select-previous-window ()
+  "Switch to the previous window"
+  (interactive)
+  (select-window (previous-window)))
+
+
+(global-set-key [(control shift up)] 'enlarge-window)
+(global-set-key [(control shift down)] 'shrink-window)
+(global-set-key [(control shift left)] 'enlarge-window-horizontally)
+(global-set-key [(control shift right)] 'shrink-window-horizontally)
+
+
+
+(global-set-key [(control shift up)] 'enlarge-window)
+(global-set-key [(control shift down)] 'shrink-window)
+(global-set-key [(control shift left)] 'enlarge-window-horizontally)
+(global-set-key [(control shift right)] 'shrink-window-horizontally)
+(global-set-key (kbd "M-<right>") 'select-next-window)
+(global-set-key (kbd "M-<left>")  'select-previous-window)
+
+
+
+
+;; *****************************************************************************
+;; Winring
+;; *****************************************************************************
+
+(require 'winring) ;Must be loaded after ecb-winman-winring-enable-support call
+(winring-initialize)
+(winring-rename-configuration "GUD")
+(winring-new-configuration nil)
+(winring-rename-configuration "ECB")
+
+
+
+
+(defun my-winring-jump-to-configuration (var)
+  "Go to the named window configuration."
+  (let* ((ring (winring-get-ring))
+         (index (my-winring-complete-name var))
+         item)
+    ;; if the current configuration was chosen, winring-complete-name
+    ;; returns -1
+    (when (<= 0 index)
+      (setq item (ring-remove ring index))
+      (winring-save-current-configuration)
+      (winring-restore-configuration item))
+    ))
+
+
+
+
+(defun my-winring-complete-name (var)
+  (let* ((ring (winring-get-ring))
+         (n (1- (ring-length ring)))
+         (current (winring-name-of-current))
+         (table (list (cons current -1))))
+    ;; populate the completion table
+    (while (<= 0 n)
+      (setq table (cons (cons (winring-name-of (ring-ref ring n)) n) table)
+            n (1- n)))
+    (setq name var)
+    (if (string-equal name "")
+        (setq name current))
+    (cdr (assoc name table))))
+
+
+
+
+
+
+
+
+;(require 'compile)
+(global-set-key [f4] 'recompile)
+(require 'mic-paren)
+(paren-activate)
+
+(require 'highlight-80+)
+
+
+(require 'w3m-load)
+
+(require 'avoid)
+(mouse-avoidance-mode 'animate)
+
+
+(require 'tramp)
+;(require 'tabbar)
+
+
+
+;(require 'tabbar)
+;(tabbar-mode t)
+;(require 'zenburn)
+;(color-theme-classic)
+;(zenburn)
+
+(server-start)
+
+;(turn-on-auto-fill)
+
+
+
+
+
+
+
+;; *****************************************************************************
+;; Jump to point
+;; *****************************************************************************
+
+(global-set-key [ (shift f1) ] '(lambda ()
+                                  (interactive)
+                                  (point-to-register 1)))
+
+
+(global-set-key [ (shift f2) ] '(lambda ()
+                                  (interactive)
+                                  (point-to-register 2)))
+
+
+(global-set-key [ (shift f3) ] '(lambda ()
+                                  (interactive)
+                                  (point-to-register 3)))
+
+
+(global-set-key [ (shift f4) ] '(lambda ()
+                                  (interactive)
+                                  (point-to-register 4)))
+
+
+
+(global-set-key [ (control f1) ] '(lambda ()
+                                  (interactive)
+                                  (jump-to-register 1)))
+
+
+(global-set-key [ (control f2) ] '(lambda ()
+                                  (interactive)
+                                  (jump-to-register 2)))
+
+
+(global-set-key [ (control f3) ] '(lambda ()
+                                  (interactive)
+                                  (jump-to-register 3)))
+
+
+(global-set-key [ (control f4) ] '(lambda ()
+                                  (interactive)
+                                  (jump-to-register 4)))
+
+
+
+
+
+
+;TODO: Put english dictionary in programming modes
+;TODO: erase C-v Custom and search other for M-v
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;User defined functions
+
+
+(defun ascii-table ()
+  "Print the ascii table. Based on a defun by Alex Schroeder
+  <asc@bsiag.com>"
+  (interactive)
+  (switch-to-buffer "*ASCII*")
+  (erase-buffer)
+  (insert (format "ASCII characters up to number %d.\n" 254))
+  (let ((i 0))
+    (while (< i 254)
+      (setq i (+ i 1))
+      (insert (format "%4d %02X %c\n" i i i))))
+  (goto-line 0))
+
+
+;TODO: link fill-column and comment init-pos and end-pos
+;TODO: Document str-fill-spaces-c-comment defun
+
+
+(defun fill-spaces-c-comment (&optional init-pos end-pos)
+  "Fill with spaces the line until fill-column and after put \"*/\""
+  (interactive)
+  (when (not init-pos) (setq init-pos (current-column)))
+  (when (not end-pos) (setq end-pos fill-column))
+  (insert-char ?. (- end-pos init-pos 2))
+  (insert "*/")
+  )
+
+
+
+(defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
+  ""
+  (when (not (stringp str)) (setq str ""))
+  (when (not init-pos) (setq init-pos (current-column)))
+  (when (not end-pos) (setq end-pos fill-column))
+  (let ((cont (- end-pos init-pos 2)))
+    (while (> cont 0)
+      (setq cont (- cont 1))
+      (setq str (concat str " ")))
+    (concat str "*/")))
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;Put needed hooks
+
+
+(add-hook 'comint-output-filter-functions
+          'comint-watch-for-password-prompt)
+
+(fset 'yes-or-no-p 'y-or-n-p)           ;Enable y/n instead of yes/no
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;User defined keys
+;;;
+;;;TODO: meterle acelerador de raton
+;;;TODO: añadir la pila de buffers
+
+
+
+(global-set-key "\C-cw" 'delete-region)
+(global-set-key "\C-cc" 'comment-region)
+(global-set-key "\C-cu" 'uncomment-region)
+(global-set-key "\C-cn" 'next-error)
+(global-set-key "\C-cp" 'previous-error)
+
+
+
+
+
+
+(global-set-key [(meta g)]  'goto-line)
+
+
+(defun goto-column ()
+   "Goto column, counting from column 0 at beginning of line."
+   (interactive)
+   (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
+
+
+
+
+(global-set-key [ ( control meta return ) ] 'complete-tag)
+
+(global-set-key "\M-v" 'highlight-80+-mode)
+(global-set-key "\C-v" 'highline-mode)
+
+
+
+
+
+
+
+;;Keys to allow save position in the buffer
+
+
+
+
+
+;;Asignacion de nuevos tipos de ficheros:
+
+
+(setq auto-mode-alist
+       (append auto-mode-alist
+         '(("\\.mak$" . makefile-mode))))
+
+
+
+
+
+;; *****************************************************************************
+;; timeclock & planner configuration
+;; *****************************************************************************
+
+(require 'timeclock)
+
+(global-set-key "\C-cti" 'timeclock-in)
+(global-set-key "\C-cto" 'timeclock-out)
+(global-set-key "\C-ctc" 'timeclock-change)
+(global-set-key "\C-ctr" 'timeclock-reread-log)
+(global-set-key "\C-ctu" 'timeclock-update-modeline)
+(global-set-key "\C-ctw" '(lambda ()
+                            (interactive)
+                            (message (timeclock-when-to-leave-string nil t))))
+
+(global-set-key "\C-cts" 'timeclock-status-string)
+(global-set-key "\C-ctv" 'timeclock-visit-timelog)
+(global-set-key "\C-ctl" 'timeclock-generate-report)
+(global-set-key "\C-ctt" 'timeclock-modeline-display)
+
+
+
+(defun askworkday ()
+  (interactive)
+  (* 60 60 (string-to-number (read-from-minibuffer "Numero de horas: "))))
+
+;; TODO: Modify planner to allow change directory where is saved .timeclock file
+
+(setq planner-project "WikiPlanner")
+(setq muse-project-alist
+      '(("WikiPlanner"
+         ("~/plans"   ;; Or wherever you want your planner files to be
+          :default "index"
+          :major-mode planner-mode
+          :visit-link planner-visit-link))))
+
+(require 'planner)                      ;here the order is important!
+(require 'planner-timeclock)
+(require 'planner-timeclock-summary)
+
+
+
+
+
+
+;; *****************************************************************************
+;; hacking for text mode
+;; *****************************************************************************
+
+(cond ((eq window-system nil)
+       (global-semantic-stickyfunc-mode -1)
+       (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol)
+       (menu-bar-mode nil)))
+
+
+
+
+
+
+
+;; *****************************************************************************
+;; Autocomplete modes
+;; *****************************************************************************
+
+(require 'auto-complete)
+(require 'auto-complete-config)
+(global-auto-complete-mode t)
+
+(set-default 'ac-sources
+             '(ac-source-yasnippet
+               ac-source-abbrev
+               ac-source-words-in-buffer))
+
+(require 'dropdown-list)
+(setq yas/prompt-functions '(yas/dropdown-prompt
+                             yas/ido-prompt
+                             yas/completing-prompt))
+
+;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
+;(global-set-key "\M-/" 'ac-start)
+(define-key ac-complete-mode-map "\C-n" 'ac-next)
+(define-key ac-complete-mode-map "\C-p" 'ac-previous)
+(define-key ac-complete-mode-map [ ( return ) ] 'ac-stop)
+
+
+
+
+;; *****************************************************************************
+;; yasnippet
+;; *****************************************************************************
+
+(require 'yasnippet)
+(yas/initialize)
+(yas/load-directory "~/.emacs.d/site-lisp/yasnippet/snippets")
+
+
+
+
+;;*****************************************************************************
+;; Ediff
+;*****************************************************************************
+
+(require 'ediff)
+
+;; Ediff
+;; =====
+;; When you run Ediff on the Develock'ed buffers, you may feel
+;; everything is in confusion.  For such a case, the following hooks
+;; may help you see diffs clearly.
+;;
+
+(add-hook
+ 'ediff-prepare-buffer-hook
+ (lambda nil
+   (if (and (boundp 'font-lock-mode) font-lock-mode
+            (boundp 'develock-mode) develock-mode)
+       (progn
+         (develock-mode 0)
+         (set (make-local-variable 'develock-mode-suspended) t)))))
+
+(add-hook
+ 'ediff-cleanup-hook
+ (lambda nil
+   (let ((buffers (list ediff-buffer-A ediff-buffer-B ediff-buffer-C)))
+     (save-excursion
+       (while buffers
+         (if (buffer-live-p (car buffers))
+             (progn
+               (set-buffer (car buffers))
+               (if (and (boundp 'develock-mode-suspended)
+                        develock-mode-suspended)
+                   (progn
+                     (develock-mode 1)
+                     (makunbound 'develock-mode-suspended)))))
+         (setq buffers (cdr buffers)))))))

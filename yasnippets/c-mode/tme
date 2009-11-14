@@ -1,0 +1,31 @@
+# name: TME header
+# key: tme
+# expand-env: ((yas/indent-line 'fixed) (yas/wrap-around-region 'nil))
+# --
+/* ------------------------------------------------------------------------- */
+/* (c) Telefonica Moviles Espana S.A.                                        */
+/* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                                        */
+/* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                                        */
+/* --------------------------------------------------------------------------*/
+/* Los contenidos de este fichero son propiedad de Telefonica Moviles Espana */
+/* S.A. titular del copyright. Este fichero solo podra ser copiado,          */
+/* distribuido y utilizado, en su totalidad o en parte, con el permiso       */
+/* escrito de Telefonica Moviles Espana S.A. o de acuerdo con los terminos y */
+/* condiciones establecidas en el acuerdo/contrato bajo el que se suministra.*/
+/* --------------------------------------------------------------------------*/
+/* Modulo  : ${    }  `(str-fill-spaces-c-comment nil  18 78)`
+/* Fichero : `(str-fill-spaces-c-comment (file-name-nondirectory (buffer-file-name)) 12 78)`
+/* Tipo    : IMPLEMENTACION                                                  */
+/* Autor   : INDRA                                                           */
+/* Fecha primera version : `(str-fill-spaces-c-comment (format-time-string "%d/%m/%Y") 26 78)`
+/* ------------------------------------------------------------------------- */
+/* Proposito:                                                                */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+/* Consideraciones de portabilidad:                                          */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+/* Cambios realizados:                                                       */
+/* H_${      }-${        } DESARROLLADO POR INDRA EL `(str-fill-spaces-c-comment (format-time-string "%d/%m/%Y") 52 78)`
+/* ------------------------------------------------------------------------- */
+$0
