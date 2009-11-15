@@ -1,4 +1,4 @@
-;Time-stamp: <11/13/2009 23:36:02>
+;Time-stamp: <11/15/2009 11:05:24>
 
 (defvar time-format "%02m/%02d/%Y %02H:%02M:%02S"
   "Variable which store the time format string")
@@ -78,7 +78,8 @@
  '(ac-auto-start 3)
  '(ac-dwim t)
  '(ac-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode cc-mode c++-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode js2-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode asm-mode)))
- '(backup-directory-alist (quote (("*" . "~/.emacs.d/cache"))))
+ '(auto-save-list-file-prefix "~/.emacs.d/cache/auto-save-list/.saves-")
+ '(backup-directory-alist (quote ((".*" . "~/.emacs.d/cache"))))
  '(column-number-mode t)
  '(dabbrev-case-replace nil)
  '(develock-max-column-plist (quote (emacs-lisp-mode 80 lisp-interaction-mode w change-log-mode t texinfo-mode t c-mode 80 c++-mode 80 java-mode 80 jde-mode 80 html-mode 80 html-helper-mode 80 cperl-mode 80 perl-mode 80 mail-mode t message-mode t cmail-mail-mode t tcl-mode 80 ruby-mode 80)))
@@ -118,6 +119,10 @@
  '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
  '(gud-tooltip-mode t)
  '(ido-save-directory-list-file "~/.emacs.d/cache/.ido.last")
+ '(image-dired-db-file "/home/roberto/.emacs.d/cache/image-dired/.image-dired_db")
+ '(image-dired-dir "/home/roberto/.emacs.d/cache/image-dired/")
+ '(image-dired-gallery-dir "/home/roberto/.emacs.d/cache/image-dired/.image-dired_gallery")
+ '(image-dired-temp-image-file "/home/roberto/.emacs.d/cache/image-dired/.image-dired_temp")
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(line-number-mode t)
@@ -286,6 +291,20 @@
 (global-set-key "\C-\M-f" 'find-file-at-point)
 
 
+;; Put autosave files (ie #foo#) in one place, *not*
+;; scattered all over the file system!
+(defvar autosave-dir
+  "~/.emacs.d/cache/")
+
+(defun auto-save-file-name-p (filename)
+  (string-match "^#.*#$" (file-name-nondirectory filename)))
+
+(defun make-auto-save-file-name ()
+  (concat autosave-dir
+   (if buffer-file-name
+      (concat "#" (file-name-nondirectory buffer-file-name) "#")
+    (expand-file-name
+     (concat "#%" (buffer-name) "#")))))
 
 
 ;; *****************************************************************************
