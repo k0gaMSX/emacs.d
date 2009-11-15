@@ -648,12 +648,22 @@
 
 
 
-
-
+;;*****************************************************************************
+;;Compile
+;;*****************************************************************************
 
 
 (require 'compile)
 (global-set-key [f4] 'recompile)
+
+(add-hook 'compilation-mode-hook (lambda nil
+                                   (highline-local-mode t)))
+
+
+
+
+
+
 (require 'mic-paren)
 (paren-activate)
 
