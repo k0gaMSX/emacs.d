@@ -1,4 +1,4 @@
-;Time-stamp: <11/15/2009 11:45:00>
+;	$Id$
 
 (defvar time-format "%Y-%02m-%02d %02H:%02M:%02S"
   "Variable which store the time format string")
