@@ -1,6 +1,6 @@
-;Time-stamp: <11/15/2009 11:05:24>
+;Time-stamp: <11/15/2009 11:45:00>
 
-(defvar time-format "%02m/%02d/%Y %02H:%02M:%02S"
+(defvar time-format "%Y-%02m-%02d %02H:%02M:%02S"
   "Variable which store the time format string")
 
 
