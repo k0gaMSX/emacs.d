@@ -5,15 +5,17 @@
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
-;; This file is free software: you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This file is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
@@ -21,12 +23,15 @@
 ;;; Commentary:
 
 ;; Access functions for the GVFS daemon from Tramp.  Tested with GVFS
-;; 1.0.2 (Ubuntu 8.10, Gnome 2.24).
+;; 1.0.2 (Ubuntu 8.10, Gnome 2.24).  It has been reported also to run
+;; with GVFS 0.2.5 (Ubuntu 8.04, Gnome 2.22), but there is an
+;; incompatibility with the mount_info structure, which has been
+;; worked around.
 
 ;; All actions to mount a remote location, and to retrieve mount
 ;; information, are performed by D-Bus messages.  File operations
 ;; themselves are performed via the mounted filesystem in ~/.gvfs.
-;; Consequently, GNU Emacs 23.0.90 with enabled D-Bus bindings is a
+;; Consequently, GNU Emacs 23.1 with enabled D-Bus bindings is a
 ;; precondition.
 
 ;; The GVFS D-Bus interface is said to be instable.  There are even no
@@ -34,11 +39,11 @@
 ;; development time, is given in respective comments.
 
 ;; The customer option `tramp-gvfs-methods' contains the list of
-;; supported connection methods.  Per default, these are "dav", "davs"
-;; and "obex".  Note that with "obex" it might be necessary to pair
-;; with the other bluetooth device, if it hasn't been done already.
-;; There might be also some few seconds delay in discovering available
-;; bluetooth devices.
+;; supported connection methods.  Per default, these are "dav",
+;; "davs", "obex" and "synce".  Note that with "obex" it might be
+;; necessary to pair with the other bluetooth device, if it hasn't
+;; been done already.  There might be also some few seconds delay in
+;; discovering available bluetooth devices.
 
 ;; Other possible connection methods are "ftp", "sftp" and "smb".
 ;; When one of these methods is added to the list, the remote access
@@ -63,11 +68,12 @@
 ;; drop me a note.
 
 ;; For hostname completion, information is retrieved either from the
-;; bluez daemon (for the "obex" method), or from the zeroconf daemon
-;; (for the "dav", "davs", and "sftp" methods).  The zeroconf daemon
-;; is pre-configured to discover services in the "local" domain.  If
-;; another domain shall be used for discovering services, the customer
-;; option `tramp-gvfs-zeroconf-domain' can be set accordingly.
+;; bluez daemon (for the "obex" method), the hal daemon (for the
+;; "synce" method), or from the zeroconf daemon (for the "dav",
+;; "davs", and "sftp" methods).  The zeroconf daemon is pre-configured
+;; to discover services in the "local" domain.  If another domain
+;; shall be used for discovering services, the customer option
+;; `tramp-gvfs-zeroconf-domain' can be set accordingly.
 
 ;; Restrictions:
 
@@ -78,25 +84,45 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'dbus)
+;; D-Bus support in the Emacs core can be disabled with configuration
+;; option "--without-dbus".  Declare used subroutines and variables.
+(declare-function dbus-call-method "dbusbind.c")
+(declare-function dbus-call-method-asynchronously "dbusbind.c")
+(declare-function dbus-get-unique-name "dbusbind.c")
+(declare-function dbus-register-method "dbusbind.c")
+(declare-function dbus-register-signal "dbusbind.c")
+
+;; Pacify byte-compiler
+(eval-when-compile
+  (require 'cl)
+  (require 'custom))
+
 (require 'tramp)
+(require 'dbus)
 (require 'url-parse)
 (require 'zeroconf)
 
-(defcustom tramp-gvfs-methods '("dav" "davs" "obex")
+(defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
   "*List of methods for remote files, accessed with GVFS."
   :group 'tramp
+  :version "23.2"
   :type '(repeat (choice (const "dav")
 			 (const "davs")
 			 (const "ftp")
 			 (const "obex")
 			 (const "sftp")
-			 (const "smb"))))
+			 (const "smb")
+			 (const "synce"))))
+
+;; Add a default for `tramp-default-user-alist'.  Rule: For the SYNCE
+;; method, no user is chosen.
+(add-to-list 'tramp-default-user-alist
+	     '("synce" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
+  :version "23.2"
   :type 'string)
 
 ;; Add the methods to `tramp-methods', in order to allow minibuffer
@@ -119,7 +145,6 @@
 
 ;; Check that GVFS is available.
 (unless (dbus-ping :session tramp-gvfs-service-daemon)
-  (message "GVFS daemon not running")
   (throw 'tramp-loading nil))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
@@ -154,7 +179,7 @@
 ;;   OBJECT_PATH	  object_path
 ;;   STRING		  display_name
 ;;   STRING		  stable_name
-;;   STRING		  x_content_types
+;;   STRING		  x_content_types	Since GVFS 1.0 only !!!
 ;;   STRING		  icon
 ;;   STRING		  prefered_filename_encoding
 ;;   BOOLEAN		  user_visible
@@ -312,6 +337,7 @@ A value of 0 would require an immediate discovery during hostname
 completion, nil means to use always cached values for discovered
 devices."
   :group 'tramp
+  :version "23.2"
   :type '(choice (const nil) integer))
 
 (defvar tramp-bluez-discovery nil
@@ -322,16 +348,29 @@ It keeps the timestamp of last discovery.")
   "Alist of detected bluetooth devices.
 Every entry is a list (NAME ADDRESS).")
 
+(defconst tramp-hal-service "org.freedesktop.Hal"
+  "The well known name of the HAL service.")
+
+(defconst tramp-hal-path-manager "/org/freedesktop/Hal/Manager"
+  "The object path of the HAL daemon manager.")
+
+(defconst tramp-hal-interface-manager "org.freedesktop.Hal.Manager"
+  "The manager interface of the HAL daemon.")
+
+(defconst tramp-hal-interface-device "org.freedesktop.Hal.Device"
+  "The device interface of the HAL daemon.")
+
+
 ;; New handlers should be added here.
 (defconst tramp-gvfs-file-name-handler-alist
   '(
     (access-file . ignore)
     (add-name-to-file . tramp-gvfs-handle-copy-file)
-    ;; `byte-compiler-base-file-name' performed by default handler
+    ;; `byte-compiler-base-file-name' performed by default handler.
     (copy-file . tramp-gvfs-handle-copy-file)
     (delete-directory . tramp-gvfs-handle-delete-directory)
     (delete-file . tramp-gvfs-handle-delete-file)
-    ;; `diff-latest-backup-file' performed by default handler
+    ;; `diff-latest-backup-file' performed by default handler.
     (directory-file-name . tramp-handle-directory-file-name)
     (directory-files . tramp-gvfs-handle-directory-files)
     (directory-files-and-attributes
@@ -339,41 +378,44 @@ Every entry is a list (NAME ADDRESS).")
     (dired-call-process . ignore)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
+    ;; `executable-find' is not official yet. performed by default handler.
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
-    ;; `file-accessible-directory-p' performed by default handler
+    ;; `file-accessible-directory-p' performed by default handler.
     (file-attributes . tramp-gvfs-handle-file-attributes)
     (file-directory-p . tramp-smb-handle-file-directory-p)
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-gvfs-handle-file-exists-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
     (file-remote-p . tramp-handle-file-remote-p)
-    ;; `file-modes' performed by default handler
+    ;; `file-modes' performed by default handler.
     (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
     (file-name-completion . tramp-handle-file-name-completion)
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
-    ;; `file-name-sans-versions' performed by default handler
+    ;; `file-name-sans-versions' performed by default handler.
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-symlink-p . tramp-handle-file-symlink-p)
-    ;; `file-truename' performed by default handler
+    ;; `file-truename' performed by default handler.
     (file-writable-p . tramp-gvfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
-    ;; `find-file-noselect' performed by default handler
-    ;; `get-file-buffer' performed by default handler
+    ;; `find-file-noselect' performed by default handler.
+    ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-gvfs-handle-insert-directory)
     (insert-file-contents . tramp-gvfs-handle-insert-file-contents)
     (load . tramp-handle-load)
     (make-directory . tramp-gvfs-handle-make-directory)
     (make-directory-internal . ignore)
     (make-symbolic-link . ignore)
+    (process-file . tramp-gvfs-handle-process-file)
     (rename-file . tramp-gvfs-handle-rename-file)
     (set-file-modes . tramp-gvfs-handle-set-file-modes)
     (set-visited-file-modtime . tramp-gvfs-handle-set-visited-file-modtime)
-    (shell-command . ignore)
+    (shell-command . tramp-gvfs-handle-shell-command)
+    (start-file-process . tramp-gvfs-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (vc-registered . ignore)
@@ -478,9 +520,10 @@ is no information where to trace the message.")
      newname)
    ok-if-already-exists keep-date preserve-uid-gid))
 
-(defun tramp-gvfs-handle-delete-directory (directory)
+(defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
-  (delete-directory (tramp-gvfs-fuse-file-name directory)))
+  (tramp-compat-delete-directory
+   (tramp-gvfs-fuse-file-name directory) recursive))
 
 (defun tramp-gvfs-handle-delete-file (filename)
   "Like `delete-file' for Tramp files."
@@ -606,14 +649,20 @@ is no information where to trace the message.")
 	(tramp-gvfs-fuse-file-name dir) parents)
     ;; Error case.  Let's try it with the GVFS utilities.
     (error
-     (with-parsed-tramp-file-name filename nil
+     (with-parsed-tramp-file-name dir nil
        (tramp-message v 4 "`make-directory' failed, trying `gvfs-mkdir'")
        (unless
 	   (zerop
 	    (tramp-local-call-process
 	     "gvfs-mkdir" nil (tramp-get-buffer v) nil
-	     (tramp-gvfs-url-file-name filename)))
+	     (tramp-gvfs-url-file-name dir)))
 	 (signal (car err) (cdr err)))))))
+
+(defun tramp-gvfs-handle-process-file
+  (program &optional infile destination display &rest args)
+  "Like `process-file' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (apply 'call-process program infile destination display args)))
 
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -636,6 +685,17 @@ is no information where to trace the message.")
   "Like `set-visited-file-modtime' for Tramp files."
   (let ((buffer-file-name (tramp-gvfs-fuse-file-name (buffer-file-name))))
     (set-visited-file-modtime time-list)))
+
+(defun tramp-gvfs-handle-shell-command
+  (command &optional output-buffer error-buffer)
+  "Like `shell-command' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (shell-command command output-buffer error-buffer)))
+
+(defun tramp-gvfs-handle-start-file-process (name buffer program &rest args)
+  "Like `start-file-process' for Tramp files."
+  (let ((default-directory (tramp-gvfs-fuse-file-name default-directory)))
+    (apply 'start-process name buffer program args)))
 
 (defun tramp-gvfs-handle-verify-visited-file-modtime (buf)
   "Like `verify-visited-file-modtime' for Tramp files."
@@ -815,7 +875,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 \"org.gtk.vfs.MountTracker.unmounted\" signals."
   (ignore-errors
     (let* ((signal-name (dbus-event-member-name last-input-event))
-	   (mount-spec (nth 1 (nth 9 mount-info)))
+	   (mount-spec (cadar (last mount-info)))
 	   (method (dbus-byte-array-to-string (cadr (assoc "type" mount-spec))))
 	   (user (dbus-byte-array-to-string (cadr (assoc "user" mount-spec))))
 	   (domain (dbus-byte-array-to-string
@@ -844,7 +904,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (tramp-set-file-property
 	   v "/" "fuse-mountpoint"
 	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (nth 8 mount-info)))))))))
+	    (dbus-byte-array-to-string (car (last mount-info 2))))))))))
 
 (dbus-register-signal
  :session nil tramp-gvfs-path-mounttracker
@@ -866,7 +926,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	     :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	     tramp-gvfs-interface-mounttracker "listMounts"))
 	 nil)
-      (let* ((mount-spec (nth 1 (nth 9 elt)))
+      (let* ((mount-spec (cadar (last elt)))
 	     (method (dbus-byte-array-to-string
 		      (cadr (assoc "type" mount-spec))))
 	     (user (dbus-byte-array-to-string
@@ -884,6 +944,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	  (setq host (tramp-bluez-device host)))
 	(when (and (string-equal "dav" method) (string-equal "true" ssl))
 	  (setq method "davs"))
+	(when (and (string-equal "synce" method) (zerop (length user)))
+	  (setq user (or (tramp-file-name-user vec) "")))
 	(unless (zerop (length domain))
 	  (setq user (concat user tramp-prefix-domain-format domain)))
 	(unless (zerop (length port))
@@ -894,7 +956,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	       (string-equal host (tramp-file-name-host vec)))
 	  (tramp-set-file-property
 	   vec "/" "fuse-mountpoint"
-	   (file-name-nondirectory (dbus-byte-array-to-string (nth 8 elt))))
+	   (file-name-nondirectory
+	    (dbus-byte-array-to-string (car (last elt 2)))))
 	  (throw 'mounted t))))))
 
 (defun tramp-gvfs-mount-spec (vec)
@@ -1047,7 +1110,7 @@ connection if a previous connection has died for some reason."
 ;; D-Bus BLUEZ functions.
 
 (defun tramp-bluez-list-devices ()
-  "Returns all discovered bluetooth devices as list.
+  "Return all discovered bluetooth devices as list.
 Every entry is a list (NAME ADDRESS).
 
 If `tramp-bluez-discover-devices-timeout' is an integer, and the last
@@ -1115,7 +1178,7 @@ be used."
    (tramp-bluez-list-devices)))
 
 ;; Add completion function for OBEX method.
-(when (dbus-ping :system tramp-bluez-service)
+(when (member tramp-bluez-service (dbus-list-known-names :system))
   (tramp-set-completion-function
    "obex" '((tramp-bluez-parse-device-names ""))))
 
@@ -1148,7 +1211,7 @@ be used."
    (zeroconf-list-services "_webdav._tcp")))
 
 ;; Add completion function for DAV and DAVS methods.
-(when (dbus-ping :system zeroconf-service-avahi)
+(when (member zeroconf-service-avahi (dbus-list-known-names :system))
   (zeroconf-init tramp-gvfs-zeroconf-domain)
   (tramp-set-completion-function
    "sftp" '((tramp-zeroconf-parse-workstation-device-names "")))
@@ -1157,12 +1220,42 @@ be used."
   (tramp-set-completion-function
    "davs" '((tramp-zeroconf-parse-webdav-device-names ""))))
 
+
+;; D-Bus SYNCE functions.
+
+(defun tramp-synce-list-devices ()
+  "Return all discovered synce devices as list.
+They are retrieved from the hal daemon."
+  (let (tramp-synce-devices)
+    (dolist (device
+	     (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	       :system tramp-hal-service tramp-hal-path-manager
+	       tramp-hal-interface-manager "GetAllDevices"))
+      (when (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	      :system tramp-hal-service device tramp-hal-interface-device
+	      "PropertyExists" "sync.plugin")
+	(add-to-list
+	 'tramp-synce-devices
+	 (with-tramp-dbus-call-method tramp-gvfs-dbus-event-vector t
+	   :system tramp-hal-service device tramp-hal-interface-device
+	   "GetPropertyString" "pda.pocketpc.name"))))
+    (tramp-message tramp-gvfs-dbus-event-vector 10 "%s" tramp-synce-devices)
+    tramp-synce-devices))
+
+(defun tramp-synce-parse-device-names (ignore)
+  "Return a list of (nil host) tuples allowed to access."
+  (mapcar
+   (lambda (x) (list nil x))
+   (tramp-synce-list-devices)))
+
+;; Add completion function for SYNCE method.
+(tramp-set-completion-function
+ "synce" '((tramp-synce-parse-device-names "")))
+
 (provide 'tramp-gvfs)
 
 ;;; TODO:
 
-;; * process-file and start-file-process on the local machine, but
-;;   with remote files.
 ;; * Host name completion via smb-server or smb-network.
 ;; * Check, how two shares of the same SMB server can be mounted in
 ;;   parallel.
@@ -1170,4 +1263,5 @@ be used."
 ;;   capability.
 ;; * Implement obex for other serial communication but bluetooth.
 
+;; arch-tag: f7f660ce-77f4-4132-9663-f5c25a47f7ed
 ;;; tramp-gvfs.el ends here

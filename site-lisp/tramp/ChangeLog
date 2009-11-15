@@ -1,3 +1,25 @@
+2009-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac: Bump version (to 2.1.18-pre).  Update merge
+	version to 2.1.17.
+
+2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Version 2.1.17 released.
+
+	* configure.ac: Bump version.
+
+2009-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* aclocal.m4 (AC_EMACS_INFO) Add imap support.
+
+	* Makefile.in: Add tramp-imap.el.
+
+2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac: Bump version (to 2.1.17-pre).  Update merge
+	version to 2.1.16.
+
 2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.1.16 released.

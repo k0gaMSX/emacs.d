@@ -1,3 +1,641 @@
+2009-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-advice-minibuffer-electric-separator)
+	(tramp-advice-minibuffer-electric-tilde): Unload advices via
+	`tramp-unload'.
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-advice-file-expand-wildcards): Apply also `ad-activate'
+	after removing the advice.
+
+2009-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-advice-make-auto-save-file-name)
+	(tramp-advice-file-expand-wildcards): Unload via
+	`ad-remove-advice'.
+
+2009-11-08  Kevin Ryde <user42@zip.com.au>
+
+	* tramp.el (tramp-advice-file-expand-wildcards): Don't rely on
+	`ad-do-it'.
+
+2009-11-08  Andr <m00naticus@gmail.com>  (tiny change)
+
+	* tramp.el (tramp-handle-write-region): Copy but rename temp file,
+	in order to keep context in SELinux.
+
+2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Version 2.1.17 released.
+
+	* tramp.el (tramp-handle-copy-directory): Don't use
+	`file-remote-p' (due to compatibility).
+
+	* tramp-compat.el (tramp-compat-copy-directory)
+	(tramp-compat-delete-directory): New defuns.
+
+	* tramp-fish.el (tramp-fish-handle-delete-directory):
+	* tramp-gvfs.el (tramp-gvfs-handle-delete-directory): Use
+	`tramp-compat-delete-directory'.
+
+	* tramp-smb.el (tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-delete-directory ): Use
+	`tramp-compat-copy-directory' and `tramp-compat-delete-directory'.
+
+2009-10-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-imap.el (top): Add `X-Size' to `imap-hash-headers'.
+	(tramp-imap-do-copy-or-rename-file): Don't use the inode, when
+	calling `tramp-imap-put-file'.  Add file size to the call.
+	(tramp-imap-get-file-entries): Compute also user name, file size,
+	and date.
+	(tramp-imap-handle-insert-directory): Insert uid and gid.
+	(tramp-imap-handle-file-attributes): Transform uid and gid
+	according to `id-format'.
+	(tramp-imap-put-file): New optional parameter SIZE.  Encode file
+	size in header X-Size.
+
+2009-10-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-write-region): In case of APPEND, reuse
+	the tmpfile name.
+
+	* tramp-imap.el (tramp-imap-file-name-handler-alist): Ignore
+	`dired-call-process'.
+	(tramp-imap-make-iht): Use `user' and `ssl' with `imap-hash-make'.
+
+2009-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (top): Remove `tramp-rfn-eshadow-update-overlay' from
+	`rfn-eshadow-update-overlay-hook' when unloading.
+	(tramp-methods): Add `tramp-copy-keep-tmpfile' for "rsync" and
+	"rsyncc".  Adjust doc string.
+	(tramp-temp-buffer-file-name) New buffer-local defvar.
+	(tramp-handle-insert-file-contents, tramp-handle-write-region):
+	Keep temporary file when indicated by method ("rsync" and
+	"rsyncc").
+	(tramp-handle-write-region): Handle APPEND.
+	(tramp-delete-temp-file-function): New defun.  Added to
+	`kill-buffer-hook'.
+
+2009-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-smb.el (tramp-smb-get-stat-capability): New defun.
+	(tramp-smb-handle-file-attributes): Use it.
+	(tramp-smb-do-file-attributes-with-stat): Don't raise an error.
+	(tramp-smb-handle-insert-directory): Use `mapc' rather than
+	`mapcar'.  Use `tramp-smb-get-stat-capability'.  Add
+	`dired-filename' text properties.
+	(tramp-smb-get-cifs-capabilities): Apply `save-match-data'.
+	(tramp-smb-maybe-open-connection): Simplify check for smbclient
+	version.
+
+2009-10-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-smb.el (tramp-smb-version): New defvar.
+	(tramp-smb-maybe-open-connection): Use it, in order to avoid
+	repeated checks.
+
+2009-10-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-replace-environment-variables): Do not fail if
+	the environment variable does not exist.
+
+	* tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-get-share, tramp-smb-get-localname): Use only VEC as
+	parameter.
+	(tramp-smb-handle-add-name-to-file)
+	(tramp-smb-handle-copy-directory, tramp-smb-handle-copy-file)
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file)
+	(tramp-smb-handle-file-attributes)
+	(tramp-smb-do-file-attributes-with-stat)
+	(tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-insert-directory)
+	(tramp-smb-handle-make-directory)
+	(tramp-smb-handle-make-directory-internal)
+	(tramp-smb-handle-make-symbolic-link)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-set-file-modes)
+	(tramp-smb-handle-write-region, tramp-smb-get-file-entries)
+	(tramp-smb-maybe-open-connection): Apply the changed parameters.
+	(tramp-smb-read-file-entry): Read Disk names in compressed format.
+	Handle long file names.
+	(tramp-smb-get-cifs-capabilities): Check, whether the connection
+	process is running.
+	(tramp-smb-maybe-open-connection): Trace "smbclient -V" command.
+	Read share names with "-g" option.
+
+2009-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* tramp-smb.el (tramp-smb-do-file-attributes-with-stat): Let-bind
+	`size'.
+
+2009-10-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-local-host-p): Function shall return nil for
+	connection methods like smb.
+
+	* tramp-cache.el (tramp-flush-connection-property): The hash can
+	be empty.
+
+	* tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-file-name-handler-alist): Add handlers for
+	`add-name-to-file', `make-symbolic-link'.
+	(tramp-smb-handle-add-name-to-file)
+	(tramp-smb-do-file-attributes-with-stat)
+	(tramp-smb-handle-make-symbolic-link)
+	(tramp-smb-get-cifs-capabilities): New defuns.
+	(tramp-smb-handle-copy-directory, tramp-smb-handle-copy-file)
+	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file)
+	(tramp-smb-handle-file-local-copy)
+	(tramp-smb-handle-make-directory-internal)
+	(tramp-smb-handle-rename-file, tramp-smb-handle-write-region): The
+	file name syntax depends on cifs capabilities.
+	(tramp-smb-handle-file-attributes); Call
+	`tramp-smb-do-file-attributes-with-stat' if possible.
+	(tramp-smb-handle-insert-directory): Use posix attributes if
+	possible.
+	(tramp-smb-handle-set-file-modes): It is applicable for posix
+	only.
+
+2009-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-file-name-real-user, tramp-file-name-domain)
+	(tramp-file-name-real-host, tramp-file-name-port): Apply
+	`save-match-data'.
+
+	* tramp-smb.el (tramp-smb-handle-copy-directory): Handle the case
+	both directories are remote.
+	(tramp-smb-handle-expand-file-name): Implement "~" expansion.
+	(tramp-smb-maybe-open-connection): Flush the cache only if
+	necessary.
+
+2009-10-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-cache.el (tramp-flush-connection-property): Add trace
+	message.
+
+	* tramp-smb.el (tramp-smb-errors): Add error messages.
+	(tramp-smb-file-name-handler-alist): Add handler for
+	`copy-directory', `expand-file-name', `set-file-modes'.
+	(tramp-smb-handle-copy-directory)
+	(tramp-smb-handle-expand-file-name)
+	(tramp-smb-handle-set-file-modes): New defuns.
+	(tramp-smb-handle-copy-file): Handle KEEP-DATE.
+	(tramp-smb-handle-file-attributes): Simplify check for retrieving
+	entry.
+	(tramp-smb-handle-insert-directory): Don't flush the cache.
+	(tramp-smb-maybe-open-connection): Check for samba client and
+	server versions.
+
+2009-10-06  Sam Steingold  <sds@gnu.org>
+
+	* tramp-compat.el (tramp-compat-process-running-p): Check that the
+	comm attribute is present before calling regexp-quote.
+
+2009-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* tramp.el (tramp-handle-start-file-process): Move tramp-error
+	call inside with-parsed...  macro so that `v' is defined.
+
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-verbose): Fix docstring.
+	(tramp-default-method): Check also for
+	`auth-source-user-or-password'.
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add handler for `copy-directory'.  Remove handler for
+	`dired-copy-file-recursive'.
+	(tramp-handle-copy-directory): New defun.
+	(tramp-do-copy-or-rename-file-out-of-band): Handle directory case.
+	(tramp-handle-dired-copy-file-recursive): Remove function.
+	(tramp-handle-start-file-process): Raise an error when PROGRAM is
+	nil.  Optimize sent command.
+
+2009-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-ftp.el (tramp-ftp-file-name-handler): Disable
+	`file-name-handler-alist' when loading 'ange-ftp.  Otherwise,
+	there could be recursive loading when `default-directory' is a
+	remote file name.  (Bug#4614)
+
+2009-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-smb.el (tramp-smb-handle-make-directory-internal): Flush
+	file properties of created directory.
+
+2009-10-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-file-name-handler-alist)
+	(tramp-file-name-for-operation): Remove
+	`dired-delete-file-recursive'.
+	(tramp-handle-make-directory): Flush upper directory's file
+	properties.
+	(tramp-handle-delete-directory): Handle optional parameter
+	RECURSIVE.
+	(tramp-handle-dired-delete-file-recursive): Delete.
+
+	* tramp-fish.el (tramp-fish-handle-delete-directory): Handle
+	optional parameter RECURSIVE.
+
+	* tramp-gvfs.el (tramp-gvfs-handle-delete-directory): Handle
+	optional parameter RECURSIVE.
+
+	* tramp-smb.el (tramp-smb-errors): Add error message for
+	connection timeout.
+	(tramp-smb-handle-delete-directory): Handle optional parameter
+	RECURSIVE.
+
+2009-09-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-file-name-handler-alist)
+	(tramp-file-name-for-operation): Add entry for
+	`dired-delete-file-recursive'.
+	(tramp-handle-dired-delete-file-recursive): New defalias.
+	(tramp-handle-dired-recursive-delete-directory): Flush directory
+	properties after the remove command only.
+
+2009-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* tramp-smb.el (tramp-smb-handle-directory-files-and-attributes):
+	Use tramp-compat-file-attributes rather than nonexistent
+	tramp-compat-handle-file-attributes.
+
+2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-imap.el (tramp-imap-file-name-handler-alist): Add handlers
+	for `directory-files-and-attributes' and `file-local-copy'.
+	(tramp-imap-handle-directory-files-and-attributes)
+	(tramp-imap-handle-file-local-copy): New defuns.
+
+	* tramp-smb.el (tramp-smb-handle-directory-files-and-attributes):
+	Use `tramp-compat-handle-file-attributes'.
+
+2009-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-imap.el (top): Require 'assoc.
+	(tramp-imap-file-name-handler-alist): Add handlers for
+	`copy-file', `insert-directory' and `rename-file'.  Fix change for
+	`file-local-copy'.
+	(tramp-imap-handle-copy-file, tramp-imap-handle-rename-file)
+	(tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-directory): New defuns.
+	(tramp-imap-get-file-entries): Compute device info with
+	`tramp-get-device'.
+	(tramp-imap-handle-file-directory-p)
+	(tramp-imap-handle-file-writable-p): Improve implementation.
+	(tramp-imap-put-file, tramp-imap-get-file): New optional parameter
+	ENCODE or DECODE, respectively.  Adapt calls accordingly.
+
+2009-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* tramp-imap.el (tramp-imap-file-name-handler-alist): Remove
+	file-local-copy handler.
+
+2009-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in: Add tramp-imap.el
+
+	* tramp.el (top): Require tramp-imap.
+	(tramp-methods): Add recursive option to `tramp-copy-args'.  Add
+	`tramp-copy-recursive'.  Valid for "rcp", "scp", "scp1", "scp2",
+	"scp1_old", "scp2_old", "rsync", "rsyncc".
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add entry for `dired-copy-file-recursive'.
+	(tramp-handle-dired-copy-file-recursive): New defun.
+
+2009-09-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* tramp-imap.el: New package.
+
+2009-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* tramp-compat.el (byte-compile-not-obsolete-vars): Set if bound.
+
+2009-09-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-file-truename, tramp-get-remote-perl):
+	Check also for "perl-file-spec" and "perl-cwd-realpath"
+	properties.
+
+2009-09-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-insert-directory): Handle "--dired" also
+	when adding a new directory.
+
+	* tramp-compat.el (tramp-compat-line-beginning-position): New defun.
+
+2009-09-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-file-name-all-completions): Use
+	`tramp-compat-number-sequence' instead of `number-sequence' and
+	symbol value of `read-file-name-completion-ignore-case'.  Both
+	symbols do not exist in Emacs 21.
+	(tramp-handle-insert-directory): Use "?\ " for compatibility
+	reasons.
+	(tramp-handle-vc-registered): Check, whether the first run did
+	return files to be tested.
+
+	* tramp-compat.el (tramp-compat-number-sequence): New defun.
+
+2009-09-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-file-attributes-with-ls)
+	(tramp-do-file-attributes-with-perl)
+	(tramp-do-file-attributes-with-stat): Rename from
+	`tramp-handle-file-attributes-with-*'.
+	(tramp-handle-file-attributes): Use them.
+	(tramp-do-directory-files-and-attributes-with-perl)
+	(tramp-do-directory-files-and-attributes-with-stat): Rename from
+	`tramp-handle-directory-files-and-attributes-with-*'.
+	(tramp-handle-directory-files-and-attributes): Use them.
+	(tramp-method-out-of-band-p): Additional parameter SIZE.
+	(tramp-do-copy-or-rename-file, tramp-handle-file-local-copy)
+	(tramp-handle-write-region): Use it.
+	(tramp-advice-make-auto-save-file-name): Do not call directly
+	`tramp-handle-make-auto-save-file-name', because this would bypass
+	the locking mechanism.
+
+	* tramp-compat.el (top): Autoload used functions from tramp.el.
+	(file-remote-p, process-file, start-file-process, set-file-times)
+	(tramp-compat-file-attributes): Compatibility functions shall not
+	call directly `tramp-handle-*', because this would bypass the
+	locking mechanism.
+
+2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (all): Replace "'(lambda" by "(lambda".
+	(tramp-handle-file-local-copy): Unset `file-name-handler-alist'
+	when writing the temp file.  Otherwise, epa-file gets confused.
+	(tramp-register-file-name-handlers): Make it a defun.  Move also
+	`epa-file-handler' to the front of `file-name-handler-alist'.
+
+2009-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tramp.el (tramp-shell-prompt-pattern): Allow a prompt to start
+	right after a ^M.
+	(tramp-root-regexp, tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp-url): Use \\` and \\'.
+	(tramp-handle-file-attributes, tramp-set-file-uid-gid): Don't
+	modify last-coding-system-used by accident.
+	(tramp-completion-file-name-handler): Apply the checks here,
+	instead during registration.
+	(tramp-register-file-name-handlers) Renamed from
+	`tramp-register-file-name-handler'.  Register both
+	`tramp-file-name-handler' and `tramp-completion-file-name-handler'.
+	(tramp-register-completion-file-name-handler): Removed.  (Bug#4260)
+
+2009-08-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-do-copy-or-rename-file-directly): Extend check
+	for direct remote copying.
+
+	* tramp-gvfs.el (top): Replace ping by checking for running
+	service for bluez and zeroconf.  (Bug#4239)
+
+2009-08-19  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-handle-process-file): Merge three remote ops
+	into one.  Do not flush all caches when
+	`process-file-side-effects' is set.
+	(tramp-vc-registered): Unset `process-file-side-effects'.
+
+2009-08-18  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-check-cached-permissions) New defun.
+	(tramp-handle-file-readable-p): Use it.
+	(tramp-handle-file-writable-p): Likewise.
+	(tramp-handle-file-executable-p): Likewise.
+
+2009-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-file-name-all-completions): Use `mapc'
+	instead of `mapcar'.
+	(tramp-do-copy-or-rename-file-out-of-band): Declare `copy-env'.
+
+2009-08-18  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-perl-file-name-all-completions): New defconst.
+	(tramp-handle-file-name-all-completions): Try using Perl to get
+	partial completions.  When perl not available, combine `cd' and
+	`ls' into single remote operation and use shell expansion to get
+	partial remote directory contents.  Set `file-exists-p' cache for
+	directory and any files returned by ls.  Change cache handling to
+	support partial directory contents.  Use error message emitted by
+	remote `cd' or Perl code for local tramp-error.
+
+2009-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-methods): New method "rsyncc".
+	(top): Add completion function for "rsyncc".
+	(tramp-do-copy-or-rename-file-out-of-band): Handle new
+	`tramp-methods' entry `copy-env' of "rsyncc".
+	(tramp-register-completion-file-name-handler): Check also
+	for (member 'partial-completion completion-styles).
+
+2009-08-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-cache.el (top): Autoload `tramp-time-less-p'.
+
+2009-08-16  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-perl-file-attributes): Print "nil" when lstat
+	fails.
+	(tramp-handle-file-attributes): Removed `file-exists-p' call.
+	(tramp-handle-file-attributes-with-ls): Check for file existence
+	at remote end.
+	(tramp-handle-file-attributes-with-stat): Likewise.
+	(tramp-handle-file-readable-p): Don't use file attribute cache
+	when file is a symlink.
+	(tramp-handle-file-writable-p): Likewise.
+	(tramp-handle-vc-registered): Use `tramp-get-file-exists-command'
+	instead of `tramp-find-file-exists-command'.
+	(tramp-convert-file-attributes): Return nil when attr is nil.
+
+2009-08-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-vc-registered): Embed the code in
+	`with-parsed-tramp-file-name'.  Don't use `caddr', we havent't
+	required 'cl.
+
+2009-08-15  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-handle-file-exists-p): Check file-attributes
+	cache, assume file exists if cache value present.
+	(tramp-handle-file-readable-p): Examine file-attributes cache to
+	see if request can be satisfied without remote operation.
+	(tramp-handle-file-writable-p): Likewise.
+	(tramp-do-copy-or-rename-file-directly): Avoid separate
+	tramp-send-command-and-check call.
+	(tramp-handle-write-region): Avoid tramp-set-file-uid-gid if
+	file-attributes shows uid/gid to be set already.
+
+2009-08-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-message-show-message): New defvar.
+	(tramp-message, tramp-error): Use it.
+
+2009-08-14  Julian Scheid  <julians37@gmail.com>
+
+	* tramp.el (tramp-handle-file-truename): Use readlink
+	--canonicalize-missing instead of --canonicalize.
+	(tramp-get-remote-readlink) Check for --canonicalize-missing
+	instead of --canonicalize.
+	(tramp-perl-file-truename) Updated to support non-existing paths.
+
+2009-08-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-get-ls-command-with-dired): New defun.
+	(tramp-handle-insert-directory): Handle "--dired".  (Bug#4075)
+	(tramp-get-ls-command, tramp-get-test-command)
+	(tramp-get-file-exists-command, tramp-get-remote-ln)
+	(tramp-get-remote-perl, tramp-get-remote-stat)
+	(tramp-get-remote-readlink, tramp-get-remote-id): Remove
+	superfluous `with-current-buffer'.
+
+2009-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-perl-file-truename): New defconst.  Perl code
+	contributed by yary <not.com@gmail.com> (tiny change).
+	(tramp-handle-file-truename): Use it.
+
+2009-08-06  Julian Scheid <julians37@googlemail.com>
+
+	* tramp.el (tramp-get-remote-readlink): New defun.
+	(tramp-handle-file-truename): Use it.
+
+2009-08-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-vc-registered-read-file-names): New defconst.
+	(tramp-handle-vc-registered): Use it.
+	(tramp-vc-file-name-handler): Remember `localname' but `filename'.
+
+2009-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-vc-registered-file-names): New defvar.
+	(tramp-vc-file-name-handler): New defun.
+	(tramp-run-real-handler): Add `tramp-vc-file-name-handler'.
+	(tramp-handle-vc-registered): Implement optimization strategy.
+	Suggested by Julian Scheid <julians37@googlemail.com>.
+
+	* tramp-cache.el (tramp-cache-inhibit-cache): Extend doc string.
+	It allows also timestamps.
+	(tramp-get-file-property): Check for timestamps in
+	`tramp-cache-inhibit-cache'.
+	(tramp-set-file-property): Write timestamp.
+
+2009-08-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (top): Make check for tramp-gvfs loading more
+	robust.  (Bug#3977)
+
+	* tramp-gvfs.el (top): Remove superfluous message when loading
+	fails.
+
+2009-08-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-rfn-eshadow-update-overlay-regexp) New defconst.
+	(tramp-rfn-eshadow-update-overlay): Use it.  (Bug#4004)
+	(tramp-handle-insert-file-contents): `unwind-protect' must be
+	inside `with-parsed-tramp-file-name'.
+
+2009-08-02  Julian Scheid <julians37@googlemail.com>  (tiny change)
+
+	* tramp.el (tramp-debug-message): Print also microseconds.
+
+2009-08-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-insert-file-contents): Optimize, when BEG
+	or END is non-nil.
+	(tramp-handle-vc-registered): Use `tramp-cache-inhibit-cache'.
+	(tramp-get-debug-buffer): Change `outline-regexp' according to new
+	format.
+
+	* tramp-cache.el (tramp-cache-inhibit-cache ): New defvar.
+	(tramp-get-file-property): Use it.
+
+2009-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-do-copy-or-rename-file): Add messages.  Simplify
+	check for out-of-band methods.
+	(tramp-do-copy-or-rename-file-out-of-band): Allow both files to be
+	remote.  Remove messages which are in `tramp-do-copy-or-rename-file'.
+
+2009-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-wait-for-output): Handle the case when commands
+	do not return a newline but a null byte before the shell
+	prompt.  (Bug#3858)
+
+2009-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-set-file-uid-gid): Handle the case the remote
+	user is root, on the local host.
+	(tramp-local-host-p): Either the local user or the remote user
+	must be root.  (Bug#3771)
+
+2009-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-handle-write-region): Flush file properties in
+	case of short track.
+
+2009-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-gvfs.el (tramp-gvfs-methods, tramp-gvfs-zeroconf-domain)
+	(tramp-bluez-discover-devices-timeout): Add version flag.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Polish handling of
+	incompatibilities between GVFS 0.2 and 1.0.
+
+2009-07-02  Juri Linkov  <juri@jurta.org>
+
+	* tramp-gvfs.el (tramp-gvfs-connection-mounted-p): Use `elt'
+	instead of `mount-info'.
+
+2009-07-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-gvfs.el (tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Handle changed mount-info
+	interface.
+
+2009-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-gvfs.el (tramp-gvfs-file-name-handler-alist): Add handler
+	for `process-file', `shell-command' and `start-file-process'.
+	(tramp-gvfs-handle-shell-command)
+	(tramp-gvfs-handle-start-file-process)
+	(tramp-gvfs-handle-process-file): New defuns.
+	(tramp-synce-list-devices): Simplify check for existence of
+	property.
+
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-do-copy-or-rename-file-directly): Handle also
+	the 'rename case, when setting file modes.  (Bug#3712)
+	(tramp-default-file-modes) Remove execute permissions.
+
+	* tramp-gvfs.el (tramp-gvfs-methods): Add "synce" method.
+	(top): Add a default for "synce" in `tramp-default-user-alist'.
+	Add completion function for "synce" method.
+	(tramp-hal-service, tramp-hal-path-manager)
+	(tramp-hal-interface-manager, tramp-hal-interface-device): New
+	defconst.
+	(tramp-gvfs-connection-mounted-p): Handle empty user name for
+	synce.
+	(tramp-synce-list-devices, tramp-synce-parse-device-names): New
+	defuns.
+
+2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-do-copy-or-rename-file-directly): Set file modes
+	mandatory.  (Bug#3712)
+
+2009-06-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-gvfs.el (top): Declare used Lisp symbols from `dbusbind'.
+	Require 'cl and 'custom when byte-compiling.
+	(tramp-gvfs-handle-make-directory): Use `dir' but `filename'.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
 2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.1.16 released.
@@ -81,7 +719,7 @@
 
 2009-04-19  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.el (top): Completion function for rsync is
+	* tramp.el (top): Completion function for "rsync" is
 	`tramp-completion-function-alist-ssh'.
 
 2009-04-14  Michael Albinus  <michael.albinus@gmx.de>

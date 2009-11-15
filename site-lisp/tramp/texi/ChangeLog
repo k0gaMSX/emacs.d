@@ -1,3 +1,75 @@
+2009-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Auto-save and Backup): Disable backups just for a
+	method.
+
+2009-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Version 2.1.17 released.
+
+2009-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Temporary files are kept for
+	`rsync' and `rsyncc' methods.
+
+2009-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Association of a pty is not
+	supported.
+
+2009-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in: Add emacsimap handling.
+
+	* tramp.texi (History): Add IMAP support.
+	(External methods): Add `imap' and `imaps' methods.
+	(GVFS based methods): Add indices for `davs'.
+	(Password handling): Rename anchors.  Add IMAP entries for
+	~/.authinfo.gpg.
+
+	* trampver.texi.in: Set default value of `emacsimap'.
+
+2009-09-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for
+	emacsclient.
+
+2009-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Version Control): Remove.
+	(External packages): New subsections "Filename completion" and
+	"File attributes cache".
+
+2009-08-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Correct `scpc' concept index
+	entries.  New method `rsyncc'.
+
+2009-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Precise, that partial
+	completion must be activated in ~/.emacs.
+
+2009-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Obtaining Tramp): Update cvs checkout
+	command. Remove nightly tarballs reference.
+
+2009-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (GVFS based methods): New section.
+	(Remote processes): Processes for GVFS based methods run locally.
+
+2009-06-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External methods): Avoid the word "hack".  Add
+	`synce' method.
+
+2009-06-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods, External methods, Gateway methods):
+	Avoid the word "kludge".
+
 2009-06-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Version 2.1.16 released.
