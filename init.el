@@ -1,5 +1,19 @@
 ;	$Id$
 
+;TODO: Put english dictionary in programming modes
+;TODO: erase C-v Custom and search other for M-v
+;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
+;      windows  is selected  I want  the ECB  windos stay  selected  and not
+;      changes to the source windows
+;TODO: link fill-column and comment init-pos and end-pos
+;TODO: Document str-fill-spaces-c-comment defun
+;TODO: meterle acelerador de raton
+;TODO: añadir la pila de buffers
+;TODO: Modify planner to allow change directory where is saved timeclock file
+;TODO: Configure ps-printer-name variable
+;TODO: put local configurations in init-local.el
+;TODO: Put highlight-80+ & highline into mouse  menu
+
 (defvar time-format "%Y-%02m-%02d %02H:%02M:%02S"
   "Variable which store the time format string")
 
@@ -14,6 +28,8 @@
 (load-file "~/.emacs.d/site-lisp/cedet/common/cedet.elc")
 
 
+(require 'setup-keys)                   ;Aditional keys
+(require 'menu-bar+)                    ;Aditional menus
 
 
 (defconst my-doxymacs-JavaDoc-function-comment-template
@@ -65,9 +81,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Customization variables
-;; *****************************************************************************
+;; ****************************************************************************
 
 
 (custom-set-variables
@@ -78,11 +94,14 @@
  '(ac-auto-start 3)
  '(ac-dwim t)
  '(ac-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode cc-mode c++-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode js2-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode asm-mode)))
+ '(auto-image-file-mode t)
  '(auto-save-list-file-prefix "~/.emacs.d/cache/auto-save-list/.saves-")
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/cache"))))
+ '(browse-kill-ring-highlight-current-entry t)
+ '(browse-kill-ring-highlight-inserted-item t)
  '(column-number-mode t)
  '(dabbrev-case-replace nil)
- '(develock-max-column-plist (quote (emacs-lisp-mode 80 lisp-interaction-mode w change-log-mode t texinfo-mode t c-mode 80 c++-mode 80 java-mode 80 jde-mode 80 html-mode 80 html-helper-mode 80 cperl-mode 80 perl-mode 80 mail-mode t message-mode t cmail-mail-mode t tcl-mode 80 ruby-mode 80)))
+ '(display-time-24hr-format t)
  '(display-time-mode t)
  '(doxymacs-file-comment-template my-doxymacs-JavaDoc-file-comment-template)
  '(doxymacs-function-comment-template my-doxymacs-JavaDoc-function-comment-template)
@@ -140,8 +159,6 @@
  '(shell-file-name "bash")
  '(time-stamp-format time-format)
  '(timeclock-get-workday-function (quote askworkday))
- '(timeclock-modeline-display t nil (timeclock))
- '(timeclock-use-display-time t nil (time))
  '(timeclock-workday 32400)
  '(tooltip-mode t)
  '(tramp-auto-save-directory "~/.emacs.d/cache")
@@ -175,13 +192,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; ECB
-;; *****************************************************************************
-
-;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
-;      windows  is selected  I want  the ECB  windos stay  selected  and not
-;      changes to the source windows
+;; ****************************************************************************
 
 (require 'ecb)
 (ecb-winman-winring-enable-support)     ;Must be called before of requiring
@@ -196,9 +209,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; CEDET configuration.
-;; *****************************************************************************
+;; ****************************************************************************
 
 
 
@@ -223,7 +236,7 @@
 (which-function-mode t)
 
 ;Customization of srecode. I will back over srecode some day
-;; '(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
+;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
 ;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
 ;; "~/.emacs.d/srecode/")))
 ;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
@@ -236,14 +249,14 @@
 (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
 (global-set-key [ (control meta <) ] 'semantic-mrub-switch-tags)
+(global-set-key [ ( control meta return ) ] 'complete-tag)
 
 
 
 
-
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Files
-;; *****************************************************************************
+;; ****************************************************************************
 
 
 (require 'jka-compr)
@@ -306,10 +319,14 @@
     (expand-file-name
      (concat "#%" (buffer-name) "#")))))
 
+(require 'highline)
+(require 'tramp)
+(add-hook 'dired-mode-hook (lambda nil
+                             (highline-local-mode t)))
 
-;; *****************************************************************************
+;; ****************************************************************************
 ; doxymacs
-;; *****************************************************************************
+;; ****************************************************************************
 
 
 (require 'doxymacs)
@@ -331,9 +348,7 @@
             (goto-char last)
             (if (search-backward "/**" nil t)
                 't
-              'nil)
-            )
-          ))
+              'nil))))
     (goto-char last)
     is-inside))
 
@@ -358,10 +373,19 @@
 
 
 
+;; ****************************************************************************
+;; Makefile mode
+;;*****************************************************************************
 
-;; *****************************************************************************
+(setq auto-mode-alist
+       (append auto-mode-alist
+         '(("\\.mak$" . makefile-mode))))
+
+
+
+;; ****************************************************************************
 ;; C modes
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'cc-mode)
 (require 'doxymacs)
@@ -428,12 +452,36 @@
 
 
 
+(defun fill-spaces-c-comment (&optional init-pos end-pos)
+  "Fill with spaces the line until fill-column and after put \"*/\""
+  (interactive)
+  (when (not init-pos) (setq init-pos (current-column)))
+  (when (not end-pos) (setq end-pos fill-column))
+  (insert-char ?. (- end-pos init-pos 2))
+  (insert "*/"))
 
 
 
-;; *****************************************************************************
+(defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
+  ""
+  (when (not (stringp str)) (setq str ""))
+  (when (not init-pos) (setq init-pos (current-column)))
+  (when (not end-pos) (setq end-pos fill-column))
+  (let ((cont (- end-pos init-pos 2)))
+    (while (> cont 0)
+      (setq cont (- cont 1))
+      (setq str (concat str " ")))
+    (concat str "*/")))
+
+
+
+
+
+
+
+;; ****************************************************************************
 ;; layout-restore
-;; *****************************************************************************
+;; ****************************************************************************
 
 
 (require 'layout-restore)
@@ -447,9 +495,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; GUD
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'gud)
 (require 'gdb-ui)
@@ -480,9 +528,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Lisp
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'compile)
 
@@ -504,14 +552,6 @@
   (find-file "~/.emacs.d/init.el"))
 
 
-;; (setq-mode-local lisp-interaction-mode
-;;                  semanticdb-find-default-throttle
-;;                  '(project unloaded recursive system omniscience))
-
-;; (setq-mode-local emacs-lisp-mode
-;;                  semanticdb-find-default-throttle
-;;                  '(project unloaded recursive system omniscience))
-
 (global-set-key "\C-ci" 'my-open-dot-emacs)
 
 
@@ -520,6 +560,7 @@
 (add-hook 'emacs-lisp-mode-hook
              (lambda ()
                (local-set-key [ ( return ) ] 'newline-and-indent)
+               (auto-fill-mode t)
                (setq ac-sources
                      '(ac-source-yasnippet
                        ac-source-abbrev
@@ -529,15 +570,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; window stuff
-;; *****************************************************************************
-
-
-;TODO: C-M-n -> next buffer
-;TODO: C-M-p -> previous buffer
-;TODO: M-p -> C-M-up
-;TODO: M-n -> C-M-down
+;; ****************************************************************************
 
 
 (defun select-next-window ()
@@ -562,15 +597,15 @@
 (global-set-key [(control shift down)] 'shrink-window)
 (global-set-key [(control shift left)] 'enlarge-window-horizontally)
 (global-set-key [(control shift right)] 'shrink-window-horizontally)
-(global-set-key (kbd "M-<right>") 'select-next-window)
-(global-set-key (kbd "M-<left>")  'select-previous-window)
+(global-set-key (kbd "M-p") 'select-next-window)
+(global-set-key (kbd "M-n")  'select-previous-window)
 
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Winring
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'winring) ;Must be loaded after ecb-winman-winring-enable-support call
 (winring-initialize)
@@ -591,8 +626,7 @@
     (when (<= 0 index)
       (setq item (ring-remove ring index))
       (winring-save-current-configuration)
-      (winring-restore-configuration item))
-    ))
+      (winring-restore-configuration item))))
 
 
 
@@ -618,7 +652,7 @@
 
 
 
-;(require 'compile)
+(require 'compile)
 (global-set-key [f4] 'recompile)
 (require 'mic-paren)
 (paren-activate)
@@ -627,13 +661,8 @@
 
 
 (require 'w3m-load)
-
 (require 'avoid)
 (mouse-avoidance-mode 'animate)
-
-
-(require 'tramp)
-;(require 'tabbar)
 
 
 
@@ -642,9 +671,7 @@
 ;(require 'zenburn)
 ;(color-theme-classic)
 ;(zenburn)
-
 (server-start)
-
 ;(turn-on-auto-fill)
 
 
@@ -653,9 +680,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Jump to point
-;; *****************************************************************************
+;; ****************************************************************************
 
 (global-set-key [ (shift f1) ] '(lambda ()
                                   (interactive)
@@ -701,89 +728,25 @@
 
 
 
-
-;TODO: Put english dictionary in programming modes
-;TODO: erase C-v Custom and search other for M-v
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;User defined functions
-
-
-(defun ascii-table ()
-  "Print the ascii table. Based on a defun by Alex Schroeder
-  <asc@bsiag.com>"
-  (interactive)
-  (switch-to-buffer "*ASCII*")
-  (erase-buffer)
-  (insert (format "ASCII characters up to number %d.\n" 254))
-  (let ((i 0))
-    (while (< i 254)
-      (setq i (+ i 1))
-      (insert (format "%4d %02X %c\n" i i i))))
-  (goto-line 0))
-
-
-;TODO: link fill-column and comment init-pos and end-pos
-;TODO: Document str-fill-spaces-c-comment defun
-
-
-(defun fill-spaces-c-comment (&optional init-pos end-pos)
-  "Fill with spaces the line until fill-column and after put \"*/\""
-  (interactive)
-  (when (not init-pos) (setq init-pos (current-column)))
-  (when (not end-pos) (setq end-pos fill-column))
-  (insert-char ?. (- end-pos init-pos 2))
-  (insert "*/")
-  )
-
-
-
-(defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
-  ""
-  (when (not (stringp str)) (setq str ""))
-  (when (not init-pos) (setq init-pos (current-column)))
-  (when (not end-pos) (setq end-pos fill-column))
-  (let ((cont (- end-pos init-pos 2)))
-    (while (> cont 0)
-      (setq cont (- cont 1))
-      (setq str (concat str " ")))
-    (concat str "*/")))
-
-
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;Put needed hooks
-
+;; ****************************************************************************
+;; Questions
+;;*****************************************************************************
 
 (add-hook 'comint-output-filter-functions
           'comint-watch-for-password-prompt)
-
 (fset 'yes-or-no-p 'y-or-n-p)           ;Enable y/n instead of yes/no
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;User defined keys
-;;;
-;;;TODO: meterle acelerador de raton
-;;;TODO: añadir la pila de buffers
-
-
+;;*****************************************************************************
+;; User defined keys
+;;*****************************************************************************
 
 (global-set-key "\C-cw" 'delete-region)
 (global-set-key "\C-cc" 'comment-region)
 (global-set-key "\C-cu" 'uncomment-region)
 (global-set-key "\C-cn" 'next-error)
 (global-set-key "\C-cp" 'previous-error)
-
-
-
-
-
-
 (global-set-key [(meta g)]  'goto-line)
 
 
@@ -794,38 +757,9 @@
 
 
 
-
-(global-set-key [ ( control meta return ) ] 'complete-tag)
-
-(global-set-key "\M-v" 'highlight-80+-mode)
-(global-set-key "\C-v" 'highline-mode)
-
-
-
-
-
-
-
-;;Keys to allow save position in the buffer
-
-
-
-
-
-;;Asignacion de nuevos tipos de ficheros:
-
-
-(setq auto-mode-alist
-       (append auto-mode-alist
-         '(("\\.mak$" . makefile-mode))))
-
-
-
-
-
-;; *****************************************************************************
+;; ****************************************************************************
 ;; timeclock & planner configuration
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'timeclock)
 
@@ -849,7 +783,7 @@
   (interactive)
   (* 60 60 (string-to-number (read-from-minibuffer "Numero de horas: "))))
 
-;; TODO: Modify planner to allow change directory where is saved .timeclock file
+
 
 (setq planner-project "WikiPlanner")
 (setq muse-project-alist
@@ -868,9 +802,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; hacking for text mode
-;; *****************************************************************************
+;; ****************************************************************************
 
 (cond ((eq window-system nil)
        (global-semantic-stickyfunc-mode -1)
@@ -883,9 +817,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; Autocomplete modes
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -910,9 +844,9 @@
 
 
 
-;; *****************************************************************************
+;; ****************************************************************************
 ;; yasnippet
-;; *****************************************************************************
+;; ****************************************************************************
 
 (require 'yasnippet)
 (yas/initialize)
@@ -958,3 +892,36 @@
                      (develock-mode 1)
                      (makunbound 'develock-mode-suspended)))))
          (setq buffers (cdr buffers)))))))
+
+
+;;*****************************************************************************
+;; kill-ring & Selections
+;;*****************************************************************************
+
+(require 'second-sel)
+(require 'browse-kill-ring+)
+(browse-kill-ring-default-keybindings)
+(define-key browse-kill-ring-mode-map [ ( control tab )]
+  'browse-kill-ring-previous)
+
+
+
+
+
+;; ****************************************************************************
+;; User defined functions
+;;*****************************************************************************
+
+
+(defun ascii-table ()
+  "Print the ascii table. Based on a defun by Alex Schroeder
+  <asc@bsiag.com>"
+  (interactive)
+  (switch-to-buffer "*ASCII*")
+  (erase-buffer)
+  (insert (format "ASCII characters up to number %d.\n" 254))
+  (let ((i 0))
+    (while (< i 254)
+      (setq i (+ i 1))
+      (insert (format "%4d %02X %c\n" i i i))))
+  (goto-line 0))
