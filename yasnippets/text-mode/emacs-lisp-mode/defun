@@ -1,11 +1,11 @@
 #name : function template
 #contributor : Xah Lee
 # --
-(defun $1 ()
+(defun $1 ($2)
   "thisandthat."
   (interactive)
-  (let (var1)
-    (setq var1 some)
+  (let ($3)
+    (setq $3 $4)
     $0
   )
 )

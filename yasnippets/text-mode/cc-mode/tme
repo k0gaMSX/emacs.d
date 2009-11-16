@@ -16,8 +16,6 @@
 /* Modulo  : ${    }  `(str-fill-spaces-c-comment nil  18 78)`
 /* Fichero : `(str-fill-spaces-c-comment (file-name-nondirectory (buffer-file-name)) 12 78)`
 /* Tipo    : IMPLEMENTACION                                                  */
-/* Autor   : INDRA                                                           */
-/* Fecha primera version : `(str-fill-spaces-c-comment (format-time-string "%d/%m/%Y") 26 78)`
 /* ------------------------------------------------------------------------- */
 /* Proposito:                                                                */
 /*                                                                           */
@@ -26,6 +24,8 @@
 /*                                                                           */
 /* ------------------------------------------------------------------------- */
 /* Cambios realizados:                                                       */
-/* H_${      }-${        } DESARROLLADO POR INDRA EL `(str-fill-spaces-c-comment (format-time-string "%d/%m/%Y") 52 78)`
+/*     `(if (string-match "H_.+_[^ ]+" (timeclock-status-string))
+             (match-string 0 (timeclock-status-string))
+           (error "You are clocked out!"))` DESARROLLADO POR INDRA EL `(format-time-string "%d/%m/%Y")` `(str-fill-spaces-c-comment 56 78)`
 /* ------------------------------------------------------------------------- */
 $0

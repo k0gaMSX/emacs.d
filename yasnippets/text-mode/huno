@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: TME HUNO
+# key: huno
+# --
+`(if (string-match "H_.+_[^ ]+" (timeclock-status-string))
+    (match-string 0 (timeclock-status-string))
+   (error "You are clocked out!"))`$0

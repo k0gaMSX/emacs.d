@@ -1,3 +1,0 @@
-#name : (current time)
-# --
-`(insert (format-time-string time-format))`

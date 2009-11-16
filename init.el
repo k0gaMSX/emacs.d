@@ -172,7 +172,7 @@
  '(user-mail-address "roberto@nemesis.com")
  '(winring-prompt-on-create nil)
  '(winring-show-names t)
- '(yas/root-directory (quote ("~/.emacs.d/yasnippets" "~/.emacs.d/site-lisp/yasnippet/snippets")) nil (yasnippet))
+ '(yas/root-directory (quote ("~/.emacs.d/yasnippets")) nil (yasnippet))
  '(yas/triggers-in-field t))
 (custom-set-faces
   ;; custom-set-faces was added by Custom.
@@ -866,7 +866,7 @@
 
 (require 'yasnippet)
 (yas/initialize)
-(yas/load-directory "~/.emacs.d/site-lisp/yasnippet/snippets")
+(yas/load-directory "~/.emacs.d/yasnippets/")
 
 
 
