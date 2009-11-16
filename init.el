@@ -28,7 +28,7 @@
 (load-file "~/.emacs.d/site-lisp/cedet/common/cedet.elc")
 
 
-(require 'setup-keys)                   ;Aditional keys
+;(require 'setup-keys)                   ;Aditional keys
 (require 'menu-bar+)                    ;Aditional menus
 
 
@@ -126,19 +126,19 @@
 ]*>[    ]*" supercite-citation) (";+" lisp-comment) ("#+" sh-comment) ("%+" postscript-comment) ("^[    ]*\\(//\\|\\*\\)[^      ]*" c++-comment) ("@c[ \\t]" texinfo-comment) ("@comment[       ]" texinfo-comment) ("\\\\item[         ]" bullet) ("[0-9]+\\.[         ]" bullet) ("[0-9]+\\(\\.[0-9]+\\)+[    ]" bullet) ("[A-Za-z]\\.[       ]" bullet) ("(?[0-9]+)[         ]" bullet) ("(?[A-Za-z])[       ]" bullet) ("[0-9]+[A-Za-z]\\.[         ]" bullet) ("(?[0-9]+[A-Za-z])[         ]" bullet) ("[-~*+]+[   ]" bullet) ("o[         ]" bullet) ("[\\@]\\(param\\|throw\\|exception\\|addtogroup\\|defgroup\\)[      ]*[A-Za-z_][A-Za-z_0-9]*[       ]+" bullet) ("[\\@][A-Za-z_]+[  ]*" bullet) ("[         ]+" space) ("$" end-of-line))))
  '(font-lock-maximum-decoration t)
  '(font-lock-mode t t (font-lock))
- '(gdb-cpp-define-alist-program "cc -E  -")
- '(gdb-find-source-frame t)
- '(gdb-many-windows t)
- '(gdb-same-frame nil)
- '(gdb-show-main t)
- '(gdb-speedbar-auto-raise t)
+  '(gdb-cpp-define-alist-program "cc -E  -")
+  '(gdb-find-source-frame t)
+  '(gdb-many-windows t)
+  '(gdb-same-frame nil)
+  '(gdb-show-main t)
+  '(gdb-speedbar-auto-raise t)
  '(global-semantic-idle-summary-mode t nil (semantic-idle))
  '(global-semantic-idle-tag-highlight-mode t nil (semantic-idle))
  '(global-semantic-stickyfunc-mode nil nil (semantic-util-modes))
  '(global-semantic-tag-folding-mode t nil (semantic-util-modes))
  '(gnus-nntp-server "quimby.gnus.org")
  '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
- '(gud-tooltip-mode t)
+  '(gud-tooltip-mode t)
  '(ido-save-directory-list-file "~/.emacs.d/cache/.ido.last")
  '(image-dired-db-file "/home/roberto/.emacs.d/cache/image-dired/.image-dired_db")
  '(image-dired-dir "/home/roberto/.emacs.d/cache/image-dired/")
@@ -186,9 +186,6 @@
  '(highline-face ((t (:background "LightBlue1"))))
  '(hl-line ((t (:background "LightBlue1"))))
  '(paren-face-match ((t (:background "light grey")))))
-
-
-
 
 
 
@@ -528,9 +525,13 @@
              (define-key gud-minor-mode-map [f8] 'gud-cont)
              (define-key gud-minor-mode-map [f9] 'gud-until)))
 
+(when (or (eq system-type 'windows-nt)
+          (eq system-type 'cygwin))
+  (progn
+    (require 'cygwin-mount)
+    (cygwin-mount-activate)))
 
-
-
+(global-set-key [(control *)] 'gud-tooltip-dereference)
 
 
 
