@@ -134,6 +134,7 @@
  '(global-semantic-idle-summary-mode t nil (semantic-idle))
  '(global-semantic-idle-tag-highlight-mode t nil (semantic-idle))
  '(global-semantic-stickyfunc-mode nil nil (semantic-util-modes))
+ '(global-semantic-tag-folding-mode t nil (semantic-util-modes))
  '(gnus-nntp-server "quimby.gnus.org")
  '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
  '(gud-tooltip-mode t)
@@ -248,8 +249,8 @@
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
 (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
-(global-set-key [ (control meta <) ] 'semantic-mrub-switch-tags)
-(global-set-key [ ( control meta return ) ] 'complete-tag)
+(global-set-key [(control meta <)] 'semantic-mrub-switch-tags)
+(global-set-key [(control meta return )] 'complete-tag)
 
 
 
@@ -409,7 +410,7 @@
                (cons "\\." '(ac-source-semantic)))
   (add-to-list 'ac-omni-completion-sources
                (cons "->" '(ac-source-semantic)))
-  (local-set-key [ ( return )]  'my-javadoc-return)
+  (local-set-key [(return )]  'my-javadoc-return)
   (setq ac-sources
         '(ac-source-gtags
           ac-source-c++-keywords
@@ -423,6 +424,9 @@
                  semanticdb-find-default-throttle
                  '(project unloaded recursive omniscience))
 
+(setq-mode-local c++-mode
+                 semanticdb-find-default-throttle
+                 '(project unloaded recursive omniscience))
 
 
 ;;;(srecode-minor-mode t)
@@ -559,7 +563,7 @@
 
 (add-hook 'emacs-lisp-mode-hook
              (lambda ()
-               (local-set-key [ ( return ) ] 'newline-and-indent)
+               (local-set-key [(return ) ] 'newline-and-indent)
                (auto-fill-mode t)
                (setq ac-sources
                      '(ac-source-yasnippet
@@ -597,8 +601,8 @@
 (global-set-key [(control shift down)] 'shrink-window)
 (global-set-key [(control shift left)] 'enlarge-window-horizontally)
 (global-set-key [(control shift right)] 'shrink-window-horizontally)
-(global-set-key (kbd "M-p") 'select-next-window)
-(global-set-key (kbd "M-n")  'select-previous-window)
+(global-set-key [(meta right)] 'select-next-window)
+(global-set-key [(meta left)]  'select-previous-window)
 
 
 
@@ -694,43 +698,43 @@
 ;; Jump to point
 ;; ****************************************************************************
 
-(global-set-key [ (shift f1) ] '(lambda ()
+(global-set-key [(shift f1)] '(lambda ()
                                   (interactive)
                                   (point-to-register 1)))
 
 
-(global-set-key [ (shift f2) ] '(lambda ()
+(global-set-key [(shift f2)] '(lambda ()
                                   (interactive)
                                   (point-to-register 2)))
 
 
-(global-set-key [ (shift f3) ] '(lambda ()
+(global-set-key [(shift f3)] '(lambda ()
                                   (interactive)
                                   (point-to-register 3)))
 
 
-(global-set-key [ (shift f4) ] '(lambda ()
+(global-set-key [(shift f4)] '(lambda ()
                                   (interactive)
                                   (point-to-register 4)))
 
 
 
-(global-set-key [ (control f1) ] '(lambda ()
+(global-set-key [(control f1)] '(lambda ()
                                   (interactive)
                                   (jump-to-register 1)))
 
 
-(global-set-key [ (control f2) ] '(lambda ()
+(global-set-key [(control f2)] '(lambda ()
                                   (interactive)
                                   (jump-to-register 2)))
 
 
-(global-set-key [ (control f3) ] '(lambda ()
+(global-set-key [(control f3)] '(lambda ()
                                   (interactive)
                                   (jump-to-register 3)))
 
 
-(global-set-key [ (control f4) ] '(lambda ()
+(global-set-key [(control f4)] '(lambda ()
                                   (interactive)
                                   (jump-to-register 4)))
 
@@ -849,7 +853,7 @@
 ;(global-set-key "\M-/" 'ac-start)
 (define-key ac-complete-mode-map "\C-n" 'ac-next)
 (define-key ac-complete-mode-map "\C-p" 'ac-previous)
-(define-key ac-complete-mode-map [ ( return ) ] 'ac-stop)
+(define-key ac-complete-mode-map [(return)] 'ac-stop)
 
 
 
@@ -911,10 +915,18 @@
 (require 'second-sel)
 (require 'browse-kill-ring+)
 (browse-kill-ring-default-keybindings)
-(define-key browse-kill-ring-mode-map [ ( control tab )]
+(define-key browse-kill-ring-mode-map [(control tab)]
   'browse-kill-ring-previous)
 
 
+
+;;*****************************************************************************
+;; Control version
+;;*****************************************************************************
+
+(require 'pcvs)
+(require 'psvn)
+(require 'vc)
 
 
 
