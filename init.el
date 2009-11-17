@@ -1,6 +1,7 @@
 ;	$Id$
 
 ;TODO: Put english dictionary in programming modes
+;TODO: erase C-v Custom and search other for M-v
 ;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
 ;      windows  is selected  I want  the ECB  windos stay  selected  and not
 ;      changes to the source windows
@@ -123,7 +124,6 @@
  '(fill-column 76)
  '(filladapt-token-table (quote (("^" beginning-of-line) (">+" citation->) ("\\(\\w\\|[0-9]\\)[^'`\"<
 ]*>[    ]*" supercite-citation) (";+" lisp-comment) ("#+" sh-comment) ("%+" postscript-comment) ("^[    ]*\\(//\\|\\*\\)[^      ]*" c++-comment) ("@c[ \\t]" texinfo-comment) ("@comment[       ]" texinfo-comment) ("\\\\item[         ]" bullet) ("[0-9]+\\.[         ]" bullet) ("[0-9]+\\(\\.[0-9]+\\)+[    ]" bullet) ("[A-Za-z]\\.[       ]" bullet) ("(?[0-9]+)[         ]" bullet) ("(?[A-Za-z])[       ]" bullet) ("[0-9]+[A-Za-z]\\.[         ]" bullet) ("(?[0-9]+[A-Za-z])[         ]" bullet) ("[-~*+]+[   ]" bullet) ("o[         ]" bullet) ("[\\@]\\(param\\|throw\\|exception\\|addtogroup\\|defgroup\\)[      ]*[A-Za-z_][A-Za-z_0-9]*[       ]+" bullet) ("[\\@][A-Za-z_]+[  ]*" bullet) ("[         ]+" space) ("$" end-of-line))))
- '(flyspell-default-dictionary "british")
  '(font-lock-maximum-decoration t)
  '(font-lock-mode t t (font-lock))
  '(gdb-cpp-define-alist-program "cc -E  -")
@@ -186,6 +186,9 @@
  '(highline-face ((t (:background "LightBlue1"))))
  '(hl-line ((t (:background "LightBlue1"))))
  '(paren-face-match ((t (:background "light grey")))))
+
+
+
 
 
 
@@ -525,13 +528,9 @@
              (define-key gud-minor-mode-map [f8] 'gud-cont)
              (define-key gud-minor-mode-map [f9] 'gud-until)))
 
-(when (or (eq system-type 'windows-nt)
-          (eq system-type 'cygwin))
-  (progn
-    (require 'cygwin-mount)
-    (cygwin-mount-activate)))
 
-(global-set-key [(control *)] 'gud-tooltip-dereference)
+
+
 
 
 
@@ -690,6 +689,8 @@
 ;(zenburn)
 (server-start)
 ;(turn-on-auto-fill)
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
 
 
 
@@ -937,7 +938,6 @@
 
 ;; (add-hook 'cvs-log-edit-mode (lambda nil
 ;;                                (flyspell-mode)))
-
 
 ;;*****************************************************************************
 ;; flyspell
