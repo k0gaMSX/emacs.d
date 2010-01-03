@@ -106,7 +106,7 @@
  '(display-time-mode t)
  '(doxymacs-file-comment-template my-doxymacs-JavaDoc-file-comment-template)
  '(doxymacs-function-comment-template my-doxymacs-JavaDoc-function-comment-template)
- '(ecb-auto-activate nil)
+ '(ecb-auto-activate t)
  '(ecb-layout-window-sizes (quote (("left8" (ecb-directories-buffer-name 0.1676300578034682 . 0.2926829268292683) (ecb-sources-buffer-name 0.1676300578034682 . 0.21951219512195122) (ecb-methods-buffer-name 0.1676300578034682 . 0.2926829268292683) (ecb-history-buffer-name 0.1676300578034682 . 0.17073170731707318)))))
  '(ecb-maximize-next-after-maximized-select (quote (ecb-history-buffer-name ecb-sources-buffer-name ecb-directories-buffer-name)))
  '(ecb-options-version "2.40")
@@ -135,7 +135,6 @@
  '(global-semantic-idle-summary-mode t nil (semantic-idle))
  '(global-semantic-idle-tag-highlight-mode t nil (semantic-idle))
  '(global-semantic-stickyfunc-mode nil nil (semantic-util-modes))
- '(global-semantic-tag-folding-mode t nil (semantic-util-modes))
  '(gnus-nntp-server "quimby.gnus.org")
  '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
  '(gud-tooltip-mode t)
@@ -179,7 +178,7 @@
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "SystemWindow" :foreground "SystemWindowText" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Monaco"))))
+ '(default ((t (:inherit nil :stipple nil :background "white" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 119 :width normal :foundry "unknown" :family "Comic Sans MS"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(fringe ((((class color) (background light)) (:background "gray75"))))
  '(highlight-80+ ((((background light)) (:background "orange"))))
