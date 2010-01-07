@@ -930,6 +930,24 @@
 (require 'vc)
 
 
+;; (add-hook 'svn-log-edit-mode (lambda nil
+;;                                (flyspell-mode)))
+
+;; (add-hook 'cvs-log-edit-mode (lambda nil
+;;                                (flyspell-mode)))
+
+
+;;*****************************************************************************
+;; flyspell
+;;*****************************************************************************
+
+
+(defadvice flyspell-mode
+  (after advice-flyspell-check-buffer-on-start activate)
+  (flyspell-buffer))
+
+(add-hook 'kill-emacs-hook (lambda nil
+                             (ispell-pdict-save)))
 
 ;; ****************************************************************************
 ;; User defined functions
@@ -948,3 +966,12 @@
       (setq i (+ i 1))
       (insert (format "%4d %02X %c\n" i i i))))
   (goto-line 0))
+
+
+
+;; ****************************************************************************
+;; Sunrise commander
+;; ****************************************************************************
+
+(require 'sunrise-commander)
+(sunrise-mc-keys)
