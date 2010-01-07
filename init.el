@@ -102,6 +102,7 @@
  '(column-number-mode t)
  '(dabbrev-case-replace nil)
  '(develock-max-column-plist (quote (emacs-lisp-mode 80 lisp-interaction-mode w change-log-mode t texinfo-mode t c-mode 80 c++-mode 80 java-mode 80 jde-mode 80 html-mode 80 html-helper-mode 80 cperl-mode 80 perl-mode 80 mail-mode t message-mode t cmail-mail-mode t tcl-mode 80 ruby-mode 80)))
+ '(diff-switches "-cb")
  '(display-time-24hr-format t)
  '(display-time-mode t)
  '(doxymacs-file-comment-template my-doxymacs-JavaDoc-file-comment-template)
@@ -117,6 +118,7 @@
  '(ecb-vc-enable-support t)
  '(ecb-winman-winring-name "ECB")
  '(ede-project-placeholder-cache-file "~/.emacs.d/cache/.projects.ede")
+ '(ediff-diff-options "--binary -w")
  '(ediff-split-window-function (quote split-window-horizontally))
  '(eshell-directory-name "~/.emacs.d/cache")
  '(explicit-shell-file-name "bash")
@@ -185,9 +187,6 @@
  '(highline-face ((t (:background "LightBlue1"))))
  '(hl-line ((t (:background "LightBlue1"))))
  '(paren-face-match ((t (:background "light grey")))))
-
-
-
 
 
 
@@ -526,9 +525,15 @@
              (define-key gud-minor-mode-map [f6] 'gud-next)
              (define-key gud-minor-mode-map [f7] 'gud-finish)
              (define-key gud-minor-mode-map [f8] 'gud-cont)
+             (define-key gud-minor-mode-map [(control *)]
+               'gud-tooltip-dereference)
              (define-key gud-minor-mode-map [f9] 'gud-until)))
 
-
+(when (or (eq system-type 'windows-nt)
+          (eq system-type 'cygwin))
+  (progn
+    (require 'cygwin-mount)
+    (cygwin-mount-activate)))
 
 
 
