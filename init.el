@@ -412,13 +412,14 @@
   (add-to-list 'ac-omni-completion-sources
                (cons "->" '(ac-source-semantic)))
   (local-set-key [(return )]  'my-javadoc-return)
+  (local-set-key "\C-cc" 'my-c-comment-function)
   (setq ac-sources
         '(ac-source-gtags
           ac-source-c++-keywords
           ac-source-yasnippet
           ac-source-words-in-buffer))
-  (turn-on-filladapt-mode)
-  (auto-fill-mode t))
+  (turn-on-filladapt-mode)              ;This cause problems with space key in
+  (auto-fill-mode t))                   ;lines which begins with /*
 
 
 (setq-mode-local c-mode
@@ -462,13 +463,13 @@
   (interactive)
   (when (not init-pos) (setq init-pos (current-column)))
   (when (not end-pos) (setq end-pos fill-column))
-  (insert-char ?. (- end-pos init-pos 2))
+  (insert-char ?  (- end-pos init-pos 2))
   (insert "*/"))
 
 
 
 (defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
-  ""
+  "Return a string which fill right part of the C comment"
   (when (not (stringp str)) (setq str ""))
   (when (not init-pos) (setq init-pos (current-column)))
   (when (not end-pos) (setq end-pos fill-column))
@@ -477,6 +478,35 @@
       (setq cont (- cont 1))
       (setq str (concat str " ")))
     (concat str "*/")))
+
+
+
+(defun my-c-comment-function ()
+  "Comment a region in c-mode"
+  (interactive)
+  (unless (and transient-mark-mode mark-active)
+    (error "The mark is not set now"))
+
+  (save-excursion
+    (save-restriction
+      (narrow-to-region (region-beginning) (region-end))
+      (goto-char (point-min))
+
+      (while (search-forward "/*" nil t)
+        (replace-match "/\\*" nil t))
+
+      (goto-char (point-min))
+      (while (search-forward "*/" nil t)
+        (replace-match "*\\/" nil t))
+
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (move-to-column 0)
+        (insert "/*")
+        (end-of-line)
+        (insert (str-fill-spaces-c-comment))
+        (forward-line 1)))))
+
 
 
 
