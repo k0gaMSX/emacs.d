@@ -42,15 +42,15 @@
           (user-full-name) '> 'n
           " * " (doxymacs-doxygen-command-char) "date   "
           (format-time-string time-format) '> 'n
-          " * " (doxymacs-doxygen-command-char) "brief " 'p '> 'n
-          " * " (doxymacs-doxygen-command-char) "details " 'p '> 'n
+          " * " (doxymacs-doxygen-command-char) "brief  " 'p '> 'n
+          " * " (doxymacs-doxygen-command-char) "details  " 'p '> 'n
           " * " '> 'n
           (doxymacs-parm-tempo-element (cdr (assoc 'args next-func)))
           (unless (string-match
                    (regexp-quote (cdr (assoc 'return next-func)))
                    doxymacs-void-types)
             '(l " * " > n " * " (doxymacs-doxygen-command-char)
-                "return " (p "Returns: ") > n))
+                "return " (p "Returns:  ") > n))
           " */" '>)
        (progn
          (error "Can't find next function declaration.")
@@ -180,7 +180,7 @@
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "SystemWindow" :foreground "SystemWindowText" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Anonymous Pro"))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Anonymous Pro"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(fringe ((((class color) (background light)) (:background "gray75"))))
  '(highlight-80+ ((((background light)) (:background "orange"))))
@@ -221,7 +221,6 @@
 (require 'semantic-ia)
 (require 'semantic-gcc)
 (require 'semanticdb-global)
-
 
 
 (setq semantic-load-turn-everything-on t)
@@ -398,28 +397,24 @@
 (defun my-c-mode ()
   (doxymacs-mode)
   (setq ac-override-local-map t)
-  (setq yas/fallback-behavior nil)
-  (local-set-key [tab]
-                 '(lambda nil
-                    (interactive)
-                    (yas/expand)
-                    (c-indent-line-or-region)
-                    (when (my-inside-javadoc-comment)
-                      (tempo-forward-mark))))
-  (local-set-key [C-tab] 'eassist-switch-h-cpp)
+  (setq yas/fallback-behavior 'call-other-command)
+  (defadvice c-indent-line
+    (before indent-and-forward-tempo activate)
+    (when (my-inside-javadoc-comment)
+      (tempo-forward-mark)))
   (add-to-list 'ac-omni-completion-sources
                (cons "\\." '(ac-source-semantic)))
   (add-to-list 'ac-omni-completion-sources
                (cons "->" '(ac-source-semantic)))
   (local-set-key [(return )]  'my-javadoc-return)
   (local-set-key "\C-cc" 'my-c-comment-function)
+  (eldoc-mode)
   (setq ac-sources
         '(ac-source-gtags
-          ac-source-c++-keywords
           ac-source-yasnippet
           ac-source-words-in-buffer))
-  (turn-on-filladapt-mode)              ;This cause problems with space key in
-  (auto-fill-mode t))                   ;lines which begins with /*
+  (turn-on-filladapt-mode)            ;This cause problems with space key in
+  (auto-fill-mode t))                 ;lines which begins with /*
 
 
 (setq-mode-local c-mode
@@ -451,6 +446,7 @@
 (require 'eassist)
 (setq eassist-header-switches
       '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
+        ("pc" "h" "hpp")
         ("cpp" "h" "hpp") ("c" "h") ("C" "H")
         ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
         ("pc h")))
@@ -876,6 +872,7 @@
 
 (require 'auto-complete)
 (require 'auto-complete-config)
+(ac-config-default)
 (global-auto-complete-mode t)
 
 (set-default 'ac-sources
@@ -889,7 +886,7 @@
                              yas/completing-prompt))
 
 ;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
-;(global-set-key "\M-/" 'ac-start)
+(global-set-key "\M-/" 'ac-start)
 (define-key ac-complete-mode-map "\C-n" 'ac-next)
 (define-key ac-complete-mode-map "\C-p" 'ac-previous)
 (define-key ac-complete-mode-map [(return)] 'ac-stop)
@@ -1053,3 +1050,13 @@
    (sr-rainbow sr-gorw-face                ;Mark files with bad rights
                (:background "misty rose")
                "^..\\(-....\\(...\\)?w..*$\\)")))
+
+
+;;****************************************************************************
+;; SQL
+;;****************************************************************************
+
+
+(eval-after-load "sql"
+  ;; (load-library "sql-complete")          ; I need know how I can use it
+  (load-library "sql-indent"))
