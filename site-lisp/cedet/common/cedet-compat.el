@@ -1,12 +1,12 @@
 ;;; cedet-compat.el --- Compatibility across (X)Emacs versions
 
-;; Copyright (C) 2009 Eric M. Ludlam
+;; Copyright (C) 2009, 2010 Eric M. Ludlam
 ;; Copyright (C) 2004, 2008, 2010 David Ponce
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
 ;; Keywords: compatibility
-;; X-RCS: $Id: cedet-compat.el,v 1.6 2009/09/29 02:02:28 zappo Exp $
+;; X-RCS: $Id: cedet-compat.el,v 1.8 2010/02/19 22:43:21 zappo Exp $
 
 ;; This file is not part of Emacs
 
@@ -139,6 +139,41 @@ Copied verbatim from Emacs 23 CVS version subr.el."
 	      (cons (substring string start)
 		    list)))
     (nreverse list)))
+
+(when (not (fboundp 'find-coding-systems-region))
+;; XEmacs does not currently have `find-coding-systems-region'. Here
+;; is an emulation, which seems sufficient for CEDET's purposes.
+  (defun find-coding-systems-region (begin end)
+    "Mimic Emacs' find-coding-system-region for XEmacs.
+Return a coding system between BEGIN and END."
+    (if (stringp begin)
+	(if (equal (charsets-in-string begin) '(ascii))
+	    '(undecided)
+	  (delete-if-not
+	   #'(lambda (coding-system)
+	       ;; Assume strings are always short enough that the
+	       ;; condition-case is not worth it.
+	       (query-coding-string begin coding-system t))
+	 
+	   (remove-duplicates
+	    (append
+	     (get-language-info current-language-environment 'coding-system)
+	     (mapcar #'coding-system-name (coding-system-list)))
+	    :test #'eq :from-end t)))
+      (if (equal (charsets-in-region begin end) '(ascii))
+	  '(undecided)
+	(delete-if-not
+	 #'(lambda (coding-system)
+	     (condition-case nil
+		 (query-coding-region begin end coding-system nil t t)
+	       (text-conversion-error)))
+	 (remove-duplicates
+	  (append
+	   (get-language-info current-language-environment 'coding-system)
+	   (mapcar #'coding-system-name (coding-system-list)))
+	  :test #'eq :from-end t)))))
+  )
+
 
 ;;;###autoload
 (if (or (featurep 'xemacs) (inversion-test 'emacs "22.0"))

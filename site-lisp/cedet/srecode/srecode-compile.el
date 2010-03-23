@@ -22,12 +22,13 @@
 ;; Compile a Semantic Recoder template file.
 ;;
 ;; Template files are parsed using a Semantic/Wisent parser into
-;; a tag table.  The code therin is then further parsed down using
+;; a tag table.  The code therein is then further parsed down using
 ;; a regular expression parser.
 ;;
 ;; The output are a series of EIEIO objects which represent the
 ;; templates in a way that could be inserted later.
 
+(eval-when-compile (require 'cl))
 (require 'semantic-fw)
 (require 'eieio)
 (require 'eieio-base)
@@ -76,7 +77,7 @@ for push, pop, and peek for the active template.")
 
 (defun srecode-flush-active-templates ()
   "Flush the active template storage.
-Useful if something goes wrong in SRecode, and the active tempalte
+Useful if something goes wrong in SRecode, and the active template
 stack is broken."
   (interactive)
   (if (oref srecode-template active)
@@ -180,6 +181,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	  (set-buffer (semantic-find-file-noselect fname))
 	(set-buffer peb))
       ;; Do the compile.
+      (unless (semantic-active-p)
+        (semantic-new-buffer-fcn))
       (srecode-compile-templates)
       ;; Trash the buffer if we had to read it in.
       (if (not peb)
@@ -202,6 +205,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	(mode nil)
 	(application nil)
 	(priority nil)
+	(project nil)
 	(vars nil)
 	)
 
@@ -245,6 +249,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 		     (setq application (read firstvalue)))
 		    ((string= name "priority")
 		     (setq priority (read firstvalue)))
+		    ((string= name "project")
+		     (setq project firstvalue))
 		    (t
 		     ;; Assign this into some table of variables.
 		     (setq vars (cons (cons name firstvalue) vars))
@@ -285,12 +291,19 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
     ;; Calculate priority
     ;; 
     (if (not priority)
-	(let ((d (file-name-directory (buffer-file-name)))
-	      (sd (file-name-directory (locate-library "srecode")))
-	      (defaultdelta (if (eq mode 'default) 20 0)))
-	  (if (string= d sd)
-	      (setq priority (+ 80 defaultdelta))
-	    (setq priority (+ 30 defaultdelta)))
+	(let ((d (expand-file-name (file-name-directory (buffer-file-name))))
+	      (sd (expand-file-name (file-name-directory (locate-library "srecode"))))
+	      (defaultdelta (if (eq mode 'default) 0 10)))
+	  ;; @TODO :   WHEN INTEGRATING INTO EMACS
+	  ;;   The location of Emacs default templates needs to be specified
+	  ;;   here to also have a lower priority.
+	  (if (string-match (concat "^" sd) d)
+	      (setq priority (+ 30 defaultdelta))
+	    ;; If the user created template is for a project, then
+	    ;; don't add as much as if it is unique to just some user.
+	    (if (stringp project)
+		(setq priority (+ 50 defaultdelta))
+	      (setq priority (+ 80 defaultdelta))))
 	  (message "Templates %s has estimated priority of %d"
 		   (file-name-nondirectory (buffer-file-name))
 		   priority))
@@ -299,7 +312,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	       priority))
 
     ;; Save it up!
-    (srecode-compile-template-table table mode priority application vars)
+    (srecode-compile-template-table table mode priority application project vars)
     )
 )
 
@@ -500,12 +513,13 @@ to the inserter constructor."
       (if (not new) (error "SRECODE: Unknown macro code %S" key))
       new)))
 
-(defun srecode-compile-template-table (templates mode priority application vars)
+(defun srecode-compile-template-table (templates mode priority application project vars)
   "Compile a list of TEMPLATES into an semantic recode table.
 The table being compiled is for MODE, or the string \"default\".
 PRIORITY is a numerical value that indicates this tables location
 in an ordered search.
 APPLICATION is the name of the application these templates belong to.
+PROJECT is a directory name which these templates scope to.
 A list of defined variables VARS provides a variable table."
   (let ((namehash (make-hash-table :test 'equal
 				   :size (length templates)))
@@ -535,6 +549,9 @@ A list of defined variables VARS provides a variable table."
 
 	(setq lp (cdr lp))))
 
+    (when (stringp project)
+      (setq project (expand-file-name project)))
+
     (let* ((table (srecode-mode-table-new mode (buffer-file-name)
 		   :templates (nreverse templates)
 		   :namehash namehash
@@ -542,7 +559,8 @@ A list of defined variables VARS provides a variable table."
 		   :variables vars
 		   :major-mode mode
 		   :priority priority
-		   :application application))
+		   :application application
+		   :project project))
 	   (tmpl (oref table templates)))
       ;; Loop over all the templates, and xref.
       (while tmpl

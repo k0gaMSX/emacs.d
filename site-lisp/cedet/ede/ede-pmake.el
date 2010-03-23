@@ -1,10 +1,10 @@
 ;; ede-pmake.el --- EDE Generic Project Makefile code generator.
 
-;;;  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009  Eric M. Ludlam
+;;;  Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010  Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
-;; RCS: $Id: ede-pmake.el,v 1.62 2009/10/17 02:04:10 zappo Exp $
+;; RCS: $Id: ede-pmake.el,v 1.66 2010/03/15 13:40:54 xscript Exp $
 
 ;; This software is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@
 ;;       1) Insert distribution source variables for targets
 ;;       2) Insert user requested rules
 
+(eval-when-compile (require 'cl))
 (require 'ede-proj)
 (require 'ede-proj-obj)
 (require 'ede-proj-comp)
@@ -377,10 +378,14 @@ NOTE: Not yet in use!  This is part of an SRecode conversion of
 	  conf-table))
   (let* ((top "")
 	 (tmp this))
+    ;; Use relativistic paths for subdirs.
     (while (ede-parent-project tmp)
       (setq tmp (ede-parent-project tmp)
 	    top (concat "../" top)))
-    (insert "\ntop=" top))
+    ;; If this is the top, then use CURDIR.
+    (if (and (not (oref this metasubproject)) (string= top ""))
+	(insert "\ntop=\"$(CURDIR)\"/")
+      (insert "\ntop=" top)))
   (insert "\nede_FILES=" (file-name-nondirectory (oref this file)) " "
 	  (file-name-nondirectory (ede-proj-dist-makefile this)) "\n"))
 
@@ -433,9 +438,9 @@ sources variable."
 	(link (ede-proj-linkers this))
 	(name (ede-proj-makefile-target-name this))
 	(src (oref this source)))
+    (ede-proj-makefile-insert-object-variables (car comp) name src)
     (while comp
       (ede-compiler-only-once (car comp)
-	(ede-proj-makefile-insert-object-variables (car comp) name src)
 	(ede-proj-makefile-insert-variables (car comp)))
       (setq comp (cdr comp)))
     (while link

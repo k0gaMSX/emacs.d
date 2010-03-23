@@ -1,12 +1,12 @@
 ;;; semantic-util-modes.el --- Semantic minor modes
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009 Eric M. Ludlam
+;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010 Eric M. Ludlam
 ;;; Copyright (C) 2001 David Ponce
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Author: David Ponce <david@dponce.com>
 ;; Keywords: syntax
-;; X-RCS: $Id: semantic-util-modes.el,v 1.73 2009/10/01 02:28:49 zappo Exp $
+;; X-RCS: $Id: semantic-util-modes.el,v 1.76 2010/03/15 13:40:55 xscript Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -541,7 +541,7 @@ minor mode is enabled.
 (defcustom global-semantic-show-parser-state-mode nil
   "*If non-nil enable global use of `semantic-show-parser-state-mode'.
 When enabled, the current parse state of the current buffer is displayed
-in the mode line. See `semantic-show-parser-state-marker' for details
+in the mode line.  See `semantic-show-parser-state-marker' for details
 on what is displayed."
   :group 'semantic
   :type 'boolean
@@ -653,7 +653,7 @@ minor mode is enabled."
 (defun semantic-show-parser-state-mode (&optional arg)
   "Minor mode for displaying parser cache state in the modeline.
 The cache can be in one of three states.  They are
-Up to date, Partial reprase needed, and Full reparse needed.
+Up to date, Partial reparse needed, and Full reparse needed.
 The state is indicated in the modeline with the following characters:
  `-'  ->  The cache is up to date.
  `!'  ->  The cache requires a full update.
@@ -893,7 +893,7 @@ when it lands in the sticky line."
   "Setup option `semantic-stickyfunc-mode'.
 For semantic enabled buffers, make the function declaration for the top most
 function \"sticky\".  This is accomplished by putting the first line of
-text for that function in Emacs 21's header line."
+text for that function in the header line."
   (if semantic-stickyfunc-mode
       (progn
 	(unless (and (featurep 'semantic) (semantic-active-p))
@@ -930,7 +930,7 @@ Enables/disables making the header line of functions sticky.
 A function (or other tag class specified by
 `semantic-stickyfunc-sticky-classes') has a header line, meaning the
 first line which describes the rest of the construct.  This first
-line is what is displayed in the Emacs 21 header line.
+line is what is displayed in the header line.
 
 With prefix argument ARG, turn on if positive, otherwise off.  The
 minor mode can be turned on only if semantic feature is available and
@@ -958,6 +958,13 @@ minor mode is enabled."
   "List of tag classes which sticky func will display in the header line.")
 (make-variable-buffer-local 'semantic-stickyfunc-sticky-classes)
 
+(defcustom semantic-stickyfunc-show-only-functions-p nil
+  "Non-nil means don't show lines that aren't part of a tag.
+If this is nil, then comments or other text between tags that is
+1 line above the top of the current window will be shown."
+  :group 'semantic
+  :type 'boolean)
+
 (defun semantic-stickyfunc-tag-to-stick ()
   "Return the tag to stick at the current point."
   (let ((tags (nreverse (semantic-find-tag-by-overlay (point)))))
@@ -974,45 +981,50 @@ minor mode is enabled."
   "Make the function at the top of the current window sticky.
 Capture it's function declaration, and place it in the header line.
 If there is no function, disable the header line."
-  (let ((str
-	 (save-excursion
-	   (goto-char (window-start (selected-window)))
-	   (forward-line -1)
-	   (end-of-line)
-	   ;; Capture this function
-	   (let* ((tag (semantic-stickyfunc-tag-to-stick)))
-	     ;; TAG is nil if there was nothing of the apropriate type there.
-	     (if (not tag)
-		 ;; Set it to be the text under the header line
-		 (buffer-substring (point-at-bol) (point-at-eol))
-	       ;; Get it
-	       (goto-char (semantic-tag-start tag))
-               ;; Klaus Berndl <klaus.berndl@sdm.de>:
-               ;; goto the tag name; this is especially needed for languages
-               ;; like c++ where a often used style is like:
-               ;;     void
-               ;;     ClassX::methodM(arg1...)
-               ;;     {
-               ;;       ...
-               ;;     }
-               ;; Without going to the tag-name we would get"void" in the
-               ;; header line which is IMHO not really useful
-               (search-forward (semantic-tag-name tag) nil t)
-	       (buffer-substring (point-at-bol) (point-at-eol))
-	       ))))
-	(start 0))
-    (while (string-match "%" str start)
-      (setq str (replace-match "%%" t t str 0)
-	    start (1+ (match-end 0)))
-      )
-    ;; In 21.4 (or 22.1) the heder doesn't expand tabs.  Hmmmm.
-    ;; We should replace them here.
-    ;;
-    ;; This hack assumes that tabs are kept smartly at tab boundaries
-    ;; instead of in a tab boundary where it might only represent 4 spaces.
-    (while (string-match "\t" str start)
-      (setq str (replace-match "        " t t str 0)))
-    str))
+  (save-excursion
+    (goto-char (window-start (selected-window)))
+    (let* ((noshow (bobp))
+	   (str
+	    (progn
+	      (forward-line -1)
+	      (end-of-line)
+	      ;; Capture this function
+	      (let* ((tag (semantic-stickyfunc-tag-to-stick)))
+		;; TAG is nil if there was nothing of the apropriate type there.
+		(if (not tag)
+		    ;; Set it to be the text under the header line
+		    (if noshow ""
+		      (if semantic-stickyfunc-show-only-functions-p ""
+			(buffer-substring (point-at-bol) (point-at-eol))
+			))
+		  ;; Go get the first line of this tag.
+		  (goto-char (semantic-tag-start tag))
+		  ;; Klaus Berndl <klaus.berndl@sdm.de>:
+		  ;; goto the tag name; this is especially needed for languages
+		  ;; like c++ where a often used style is like:
+		  ;;     void
+		  ;;     ClassX::methodM(arg1...)
+		  ;;     {
+		  ;;       ...
+		  ;;     }
+		  ;; Without going to the tag-name we would get"void" in the
+		  ;; header line which is IMHO not really useful
+		  (search-forward (semantic-tag-name tag) nil t)
+		  (buffer-substring (point-at-bol) (point-at-eol))
+		  ))))
+	   (start 0))
+      (while (string-match "%" str start)
+	(setq str (replace-match "%%" t t str 0)
+	      start (1+ (match-end 0)))
+	)
+      ;; In 21.4 (or 22.1) the header doesn't expand tabs.  Hmmmm.
+      ;; We should replace them here.
+      ;;
+      ;; This hack assumes that tabs are kept smartly at tab boundaries
+      ;; instead of in a tab boundary where it might only represent 4 spaces.
+      (while (string-match "\t" str start)
+	(setq str (replace-match "        " t t str 0)))
+      str)))
 
 (defun semantic-stickyfunc-menu (event)
   "Popup a menu that can help a user understand stickyfunc-mode.
@@ -1041,7 +1053,7 @@ Argument EVENT describes the event that caused this function to be called."
 ;;;;
 
 ;; Highlight the first like of the function we are in if it is different
-;; from the the tag going off the top of the screen.
+;; from the tag going off the top of the screen.
 
 ;;;###autoload
 (defun global-semantic-highlight-func-mode (&optional arg)
@@ -1168,7 +1180,7 @@ current tag declaration."
 ;;;###autoload
 (defun semantic-highlight-func-mode (&optional arg)
   "Minor mode to highlight the first line of the current tag.
-Enables/disables making current function firstline light up.
+Enables/disables making current function first line light up.
 A function (or other tag class specified by
 `semantic-stickyfunc-sticky-classes') is highlighted, meaning the
 first line which describes the rest of the construct.
