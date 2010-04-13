@@ -393,6 +393,15 @@
 (require 'filladapt)
 (require 'develock)
 
+(require 'eassist)
+(setq eassist-header-switches
+      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
+        ("pc" "h" "hpp")
+        ("cpp" "h" "hpp") ("c" "h") ("C" "H")
+        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
+        ("pc h")))
+
+
 
 (defun my-c-mode ()
   (doxymacs-mode)
@@ -409,8 +418,10 @@
   (local-set-key [(return )]  'my-javadoc-return)
   (local-set-key "\C-cc" 'my-c-comment-function)
   (eldoc-mode)
+  (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
   (setq ac-sources
-        '(ac-source-gtags
+        '(ac-source-semantic
+          ac-source-gtags
           ac-source-yasnippet
           ac-source-words-in-buffer))
   (turn-on-filladapt-mode)            ;This cause problems with space key in
@@ -441,15 +452,6 @@
 (setq auto-mode-alist
        (append auto-mode-alist
          '(("\\.pc$" . c-mode))))
-
-
-(require 'eassist)
-(setq eassist-header-switches
-      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
-        ("pc" "h" "hpp")
-        ("cpp" "h" "hpp") ("c" "h") ("C" "H")
-        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
-        ("pc h")))
 
 
 
