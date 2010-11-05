@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; Code:
 
@@ -67,10 +67,10 @@
               (incf i))))
         finally return (nreverse result)))
 
-(ac-define-source imenu
-  '((depends imenu)
-    (candidates . ac-imenu-candidates)
-    (symbol . "s")))
+;; (ac-define-source imenu
+;;   '((depends imenu)
+;;     (candidates . ac-imenu-candidates)
+;;     (symbol . "s")))
 
 ;; gtags
 
