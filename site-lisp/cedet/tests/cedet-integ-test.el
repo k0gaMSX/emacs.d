@@ -1,6 +1,6 @@
 ;;; cedet-integ-test.el --- CEDET full integration tests.
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -77,10 +77,8 @@
 ;; @TODO -
 ;; 6) Create a distribution file.
 ;;    a Call "make dist"
-;;    b update the version number
-;;    c make a new dist.  Verify version number.
-;;    d In a fresh dir, unpack the dist.
-;;    e Compile that dist.
+;;    b In a fresh dir, unpack the dist.
+;;    c Compile that dist.
 
 (require 'semantic)
 (require 'ede)
@@ -99,7 +97,6 @@
 (require 'cit-el)
 (require 'cit-texi)
 (require 'cit-gnustep)
-(require 'cit-dist)
 
 (defvar cedet-integ-target (expand-file-name "edeproj" cedet-integ-base)
   "Root of the EDE project integration tests.")
@@ -160,10 +157,6 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
 
   ;; Do some texinfo documentation.
   (cit-srecode-fill-texi)
-
-  ;; Create a distribution
-  (find-file (expand-file-name "README" cedet-integ-target))
-  (cit-make-dist)
 
   (cit-finish-message "PASSED" make-type)
   )
@@ -326,38 +319,21 @@ such as 'clean'."
     (ede-proj-regenerate)
     ;; 1 g) build the sources.
     (compile (concat ede-make-command (or ARGS "")))
-    
-    (cit-wait-for-compilation)
-    (cit-check-compilation-for-error)
 
+    (while compilation-in-progress
+      (accept-process-output)
+      (sit-for 1))
+
+    (save-excursion
+      (set-buffer "*compilation*")
+      (goto-char (point-max))
+
+      (when (re-search-backward " Error " nil t)
+	(error "Compilation failed!"))
+
+      )
     (kill-buffer bufftokill)
     ))
-
-(defun cit-wait-for-compilation ()
-  "Wait for a compilation to finish."
-  (while compilation-in-progress
-    (accept-process-output)
-    ;; If sit for indicates that input is waiting, then
-    ;; read and discard whatever it is that is going on.
-    (when (not (sit-for 1))
-      (read-event nil nil .1)
-      ))
-  )
-
-(defun cit-check-compilation-for-error (&optional inverse)
-  "Error if the compilation buffer has errors in it.
-If optional INVERSE is non-nil, then throw an error if the
-compilation succeeded."
-  (save-excursion
-    (set-buffer "*compilation*")
-    (goto-char (point-max))
-
-    (if (re-search-backward "Compilation exited abnormally " nil t)
-	(when (not inverse)
-	  (error "Compilation failed!"))
-      (when inverse
-	(error "Compilation succeeded erroneously!"))
-      )))
 
 (defun cit-run-target (command)
   "Run the program (or whatever) that is associated w/ the current target.

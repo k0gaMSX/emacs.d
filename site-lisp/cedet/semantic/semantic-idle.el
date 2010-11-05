@@ -1,10 +1,10 @@
 ;; semantic-idle.el --- Schedule parsing tasks in idle time
 
-;;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009, 2010 Eric M. Ludlam
+;;; Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
-;; X-RCS: $Id: semantic-idle.el,v 1.63 2010/03/15 13:40:55 xscript Exp $
+;; X-RCS: $Id: semantic-idle.el,v 1.59 2009/10/13 03:17:53 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -136,7 +136,7 @@ If ARG is nil, then toggle."
          'semantic-idle-scheduler-mode arg)))
 
 (defcustom semantic-idle-scheduler-mode-hook nil
-  "Hook run at the end of function `semantic-idle-scheduler-mode'."
+  "*Hook run at the end of function `semantic-idle-scheduler-mode'."
   :group 'semantic
   :type 'hook)
 
@@ -332,32 +332,24 @@ call additional functions registered with the timer calls."
 ;;
 ;; Unlike the shorter timer, the WORK timer will kick of tasks that
 ;; may take a long time to complete.
-(defcustom semantic-idle-work-parse-neighboring-files-flag nil
+(defcustom semantic-idle-work-parse-neighboring-files-flag t
   "*Non-nil means to parse files in the same dir as the current buffer.
 Disable to prevent lots of excessive parsing in idle time."
   :group 'semantic
   :type 'boolean)
 
-(defcustom semantic-idle-work-update-headers-flag nil
-  "*Non-nil means to parse through header files in idle time.
-Disable to prevent idle time parsing of many files.  If completion
-is called that work will be done then instead."
-  :group 'semantic
-  :type 'boolean)
 
 (defun semantic-idle-work-for-one-buffer (buffer)
   "Do long-processing work for for BUFFER.
 Uses `semantic-safe' and returns the output.
 Returns t of all processing succeeded."
-  (with-current-buffer buffer
+  (save-excursion
+    (set-buffer buffer)
     (not (and
 	  ;; Just in case
 	  (semantic-safe "Idle Work Parse Error: %S"
 	    (semantic-idle-scheduler-refresh-tags)
 	    t)
-
-	  ;; Option to disable this work.
-	  semantic-idle-work-update-headers-flag
 
 	  ;; Force all our include files to get read in so we
 	  ;; are ready to provide good smart completion and idle
@@ -717,17 +709,10 @@ minor mode is enabled.")
 ;;; SUMMARY MODE
 ;;
 ;; A mode similar to eldoc using semantic
-(defcustom semantic-idle-truncate-long-summaries t
-  "Truncate summaries that are too long to fit in the minibuffer.
-This can prevent minibuffer resizing in idle time."
-  :group 'semantic
-  :type 'boolean)
 
 (defcustom semantic-idle-summary-function
   'semantic-format-tag-summarize-with-file
-  "Function to call when displaying tag information during idle time.
-This function should take a single argument, a Semantic tag, and
-return a string to display.
+  "*Function to use when displaying tag information during idle time.
 Some useful functions are found in `semantic-format-tag-functions'."
   :group 'semantic
   :type semantic-format-tag-custom-list)
@@ -743,7 +728,7 @@ If semanticdb is not in use, use the current buffer only."
 (defun semantic-idle-summary-current-symbol-info-brutish ()
   "Return a string message describing the current context.
 Gets a symbol with `semantic-ctxt-current-thing' and then
-tries to find it with a deep targeted search."
+trys to find it with a deep targetted search."
   ;; Try the current "thing".
   (let ((sym (car (semantic-ctxt-current-thing))))
     (when sym
@@ -768,7 +753,7 @@ Use the semantic analyzer to find the symbol information."
 
 (defun semantic-idle-summary-current-symbol-info-default ()
   "Return a string message describing the current context.
-This function will disable loading of previously unloaded files
+This functin will disable loading of previously unloaded files
 by semanticdb as a time-saving measure."
   (let (
 	(semanticdb-find-default-throttle
@@ -835,21 +820,15 @@ current tag to display information."
              (str (cond ((stringp found) found)
                         ((semantic-tag-p found)
                          (funcall semantic-idle-summary-function
-                                  found nil t)))))
+                                  found nil t))))
+	     )
 	;; Show the message with eldoc functions
+        (require 'eldoc)
         (unless (and str (boundp 'eldoc-echo-area-use-multiline-p)
                      eldoc-echo-area-use-multiline-p)
           (let ((w (1- (window-width (minibuffer-window)))))
             (if (> (length str) w)
                 (setq str (substring str 0 w)))))
-	;; I borrowed some bits from eldoc to shorten the
-	;; message.
-	(when semantic-idle-truncate-long-summaries
-	  (let ((ea-width (1- (window-width (minibuffer-window))))
-		(strlen (length str)))
-	    (when (> strlen ea-width)
-	      (setq str (substring str 0 ea-width)))))
-	;; Display it
         (eldoc-message str))))
 
 (semantic-alias-obsolete 'semantic-summary-mode
@@ -882,7 +861,8 @@ visible, then highlight it."
 	 (pulse-flag nil)
 	 )
     (cond ((semantic-overlay-p region)
-	   (with-current-buffer (semantic-overlay-buffer region)
+	   (save-excursion
+	     (set-buffer (semantic-overlay-buffer region))
 	     (goto-char (semantic-overlay-start region))
 	     (when (pos-visible-in-window-p
 		    (point) (get-buffer-window (current-buffer) 'visible))
@@ -954,16 +934,10 @@ Call `semantic-symref-hits-in-region' to identify local references."
 ;; This mode uses tooltips to display a (hopefully) short list of possible
 ;; completions available for the text under point.  It provides
 ;; NO provision for actually filling in the values from those completions.
-(defun semantic-idle-completions-end-of-symbol-p ()
-  "Return non-nil if the cursor is at the END of a symbol.
-If the cursor is in the middle of a symbol, then we shouldn't be
-doing fancy completions."
-  (not (looking-at "\\w\\|\\s_")))
 
 (defun semantic-idle-completion-list-default ()
   "Calculate and display a list of completions."
-  (when (and (semantic-idle-summary-useful-context-p)
-	     (semantic-idle-completions-end-of-symbol-p))
+  (when (semantic-idle-summary-useful-context-p)
     ;; This mode can be fragile.  Ignore problems.
     ;; If something doesn't do what you expect, run
     ;; the below command by hand instead.

@@ -5,7 +5,7 @@
 
 ;; Author: Joakim Verona
 ;; Keywords: tags
-;; X-RCS: $Id: semanticdb-javascript.el,v 1.5 2010/03/15 13:40:55 xscript Exp $
+;; X-RCS: $Id: semanticdb-javascript.el,v 1.4 2009/09/11 18:56:45 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -148,7 +148,8 @@ Create one of our special tables that can act as an intermediary."
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
 Equivalent modes are specified by by `semantic-equivalent-major-modes'
 local variable."
-  (with-current-buffer buffer
+  (save-excursion
+    (set-buffer buffer)
     (eq (or mode-local-active-mode major-mode) 'javascript-mode)))
 
 ;;; Usage

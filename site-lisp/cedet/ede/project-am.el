@@ -1,11 +1,11 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;;;  Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009, 2010  Eric M. Ludlam
+;;;  Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009  Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.0.3
 ;; Keywords: project, make
-;; RCS: $Id: project-am.el,v 1.56 2010/03/15 13:40:54 xscript Exp $
+;; RCS: $Id: project-am.el,v 1.49 2009/10/16 19:45:29 zappo Exp $
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -32,7 +32,7 @@
 ;; fashion.
 ;;
 ;; project-am uses the structure defined in all good GNU projects with
-;; the Automake file as its base template, and then maintains that
+;; the Automake file as it's base template, and then maintains that
 ;; information during edits, automatically updating the automake file
 ;; where appropriate.
 
@@ -49,7 +49,6 @@
 
 (require 'ede-make)
 (require 'makefile-edit)
-(require 'autoconf-edit)
 
 (eval-when-compile (require 'ede-speedbar "ede-speedbar.el"))
 (eval-when-compile (require 'compile)
@@ -394,7 +393,6 @@ Argument COMMAND is the command to use for compiling the target."
 	(cmd nil))
     (unwind-protect
 	(progn
-      (require 'ede-shell)
 	  (set-buffer tb)
 	  (setq default-directory dd)
 	  (setq cmd (read-from-minibuffer
@@ -431,17 +429,45 @@ Argument COMMAND is the command to use for compiling the target."
 
 ;;; Project loading and saving
 ;;
-(defun project-am-load (directory &optional rootproj)
-  "Read an automakefile DIRECTORY into our data structure.
+(defun project-am-load (project &optional rootproj)
+  "Read an automakefile PROJECT into our data structure.
+Make sure that the tree down to our makefile is complete so that there
+is cohesion in the project.  Return the project file (or sub-project).
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  (let* ((ede-constructiong t)
-	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
-			    'file ede-projects)))
-    (when (not amo)
-      (setq amo (project-am-load-makefile directory)))
-    amo))
+  ;; @TODO - rationalize this to the newer EDE way of doing things.
+  (setq project (expand-file-name project))
+  (let* ((ede-constructing t)
+	 (fn (project-am-find-topmost-level (file-name-as-directory project)))
+	 (amo nil)
+	 (trimmed (if (string-match (regexp-quote fn)
+				    project)
+		      (replace-match "" t t project)
+		    ""))
+	 (subdir nil))
+    (setq amo (object-assoc (expand-file-name "Makefile.am" fn)
+			    'file ede-projects))
+    (if amo
+	(error "Synchronous error in ede/project-am objects")
+      (let ((project-am-constructing t))
+	(setq amo (project-am-load-makefile fn))))
+    (if (not amo)
+	nil
+      ;; Now scan down from amo, and find the current directory
+      ;; from the PROJECT file.
+      (while (< 0 (length trimmed))
+	(if (string-match "\\([a-zA-Z0-9.-]+\\)/" trimmed)
+	    (setq subdir (match-string 0 trimmed)
+		  trimmed (replace-match "" t t trimmed))
+	  (error "Error scanning down path for project"))
+	(setq amo (project-am-subtree
+		   amo
+		   (expand-file-name "Makefile.am"
+				     (expand-file-name subdir fn)))
+	      fn (expand-file-name subdir fn)))
+      amo)
+    ))
 
 (defun project-am-find-topmost-level (dir)
   "Find the topmost automakefile starting with DIR."
@@ -467,9 +493,7 @@ Kill the makefile if it was not loaded before the load."
 	(if kb (setq fb kb)
 	  ;; We need to find-file this thing, but don't use
 	  ;; any semantic features.
-	  (let ((semantic-init-hook nil)
-		(recentf-exclude '( (lambda (f) t) ))
-		)
+	  (let ((semantic-init-hook nil))
 	    (setq fb (find-file-noselect fn)))
 	  )
 	(set-buffer fb)
@@ -483,18 +507,14 @@ Kill the makefile if it was not loaded before the load."
 	      (form def-body))))
 
 
-(defun project-am-load-makefile (path &optional suggestedname)
+(defun project-am-load-makefile (path)
   "Convert PATH into a project Makefile, and return its project object.
-It does not check for existing project objects.  Use `project-am-load'.
-Optional argument SUGGESTEDNAME will be the project name.
-This is used when subprojects are made in named subdirectories."
+It does not check for existing project objects.  Use `project-am-load'."
   (project-am-with-makefile-current path
     (if (and ede-object (project-am-makefile-p ede-object))
 	ede-object
       (let* ((pi (project-am-package-info path))
-	     (sfn (when suggestedname
-		    (project-am-last-dir suggestedname)))
-	     (pn (or sfn (nth 0 pi) (project-am-last-dir fn)))
+	     (pn (or (nth 0 pi) (project-am-last-dir fn)))
 	     (ver (or (nth 1 pi) "0.0"))
 	     (bug (nth 2 pi))
 	     (cof (nth 3 pi))
@@ -512,6 +532,21 @@ This is used when subprojects are made in named subdirectories."
 	ampf))))
 
 ;;; Methods:
+(defmethod ede-find-target ((amf project-am-makefile) buffer)
+  "Fetch the target belonging to BUFFER."
+  (or (call-next-method)
+      (let ((targ (oref amf targets))
+	    (sobj (oref amf subproj))
+	    (obj nil))
+	(while (and targ (not obj))
+	  (if (ede-buffer-mine (car targ) buffer)
+	      (setq obj (car targ)))
+	  (setq targ (cdr targ)))
+	(while (and sobj (not obj))
+	  (setq obj (project-am-buffer-object (car sobj) buffer)
+		sobj (cdr sobj)))
+	obj)))
+
 (defmethod project-targets-for-file ((proj project-am-makefile))
   "Return a list of targets the project PROJ."
   (oref proj targets))
@@ -558,24 +593,7 @@ DIR is the directory to apply to new targets."
        project-am-type-alist)
       ntargets))
 
-(defun project-am-expand-subdirlist (place subdirs)
-  "Store in PLACE the SUBDIRS expanded from variables.
-Strip out duplicates, and recurse on variables."
-  (mapc (lambda (sp)
-	  (let ((var (makefile-extract-varname-from-text sp)))
-	    (if var
-		;; If it is a variable, expand that variable, and keep going.
-		(project-am-expand-subdirlist
-		 place (makefile-macro-file-list var))
-	      ;; Else, add SP in if it isn't a dup.
-	      (if (member sp (symbol-value place))
-		  nil ; don't do it twice.
-		(set place (cons sp (symbol-value place))) ;; add
-		))))
-	subdirs)
-  )
-
-(defmethod project-rescan ((this project-am-makefile) &optional suggestedname)
+(defmethod project-rescan ((this project-am-makefile))
   "Rescan the makefile for all targets and sub targets."
   (project-am-with-makefile-current (file-name-directory (oref this file))
     ;;(message "Scanning %s..." (oref this file))
@@ -585,11 +603,10 @@ Strip out duplicates, and recurse on variables."
 	   (bug (nth 2 pi))
 	   (cof (nth 3 pi))
 	   (osubproj (oref this subproj))
-	   ;; 1/30/10 - We need to append these two lists together,
-	   ;; then strip out duplicates.  Expanding this list (via 
-	   ;; references to other variables should also strip out
-	   ;; dups
-	   (csubproj (append
+	   (csubproj (or
+		      ;; If DIST_SUBDIRS doesn't exist, then go for the
+		      ;; static list of SUBDIRS.  The DIST version should
+		      ;; contain SUBDIRS plus extra stuff.
 		      (makefile-macro-file-list "DIST_SUBDIRS")
 		      (makefile-macro-file-list "SUBDIRS")))
 	   (csubprojexpanded nil)
@@ -601,19 +618,25 @@ Strip out duplicates, and recurse on variables."
 	   (ntargets (project-am-scan-for-targets this dir))
 	   )
 
-      (if suggestedname
-	  (oset this name (project-am-last-dir suggestedname))
-	;; Else, setup toplevel project info.
-	(and pn (string= (directory-file-name
-			  (oref this directory))
-			 (directory-file-name
-			  (project-am-find-topmost-level
-			   (oref this directory))))
-	     (oset this name pn)
-	     (and pv (oset this version pv))
-	     (and bug (oset this mailinglist bug))
-	     (oset this configureoutputfiles cof)))
+      (and pn (string= (directory-file-name
+			(oref this directory))
+		       (directory-file-name
+			(project-am-find-topmost-level
+			 (oref this directory))))
+	   (oset this name pn)
+	   (and pv (oset this version pv))
+	   (and bug (oset this mailinglist bug))
+	   (oset this configureoutputfiles cof))
 
+;      ;; LISP is different.  Here there is only one kind of lisp (that I know of
+;      ;; anyway) so it doesn't get mapped when it is found.
+;      (if (makefile-move-to-macro "lisp_LISP")
+; 	  (let ((tmp (project-am-lisp "lisp"
+; 				      :name "lisp"
+; 				      :path dir)))
+; 	    (project-rescan tmp)
+; 	    (setq ntargets (cons tmp ntargets))))
+;
       ;; Now that we have this new list, chuck the old targets
       ;; and replace it with the new list of targets I just created.
       (oset this targets (nreverse ntargets))
@@ -622,8 +645,17 @@ Strip out duplicates, and recurse on variables."
 
       ;; FIGURE THIS OUT
 
-      (project-am-expand-subdirlist 'csubprojexpanded csubproj)
-
+      (mapc (lambda (sp)
+ 	      (let ((var (makefile-extract-varname-from-text sp))
+ 		    )
+ 		(if (not var)
+ 		    (setq csubprojexpanded (cons sp csubprojexpanded))
+ 		  ;; If it is a variable, expand that variable, and keep going.
+ 		  (let ((varexp (makefile-macro-file-list var)))
+ 		    (dolist (V varexp)
+ 		      (setq csubprojexpanded (cons V csubprojexpanded)))))
+ 		))
+ 	    csubproj)
 
       ;; Ok, now lets look at all our sub-projects.
       (mapc (lambda (sp)
@@ -646,11 +678,11 @@ Strip out duplicates, and recurse on variables."
  		      (setq tmp
  			    (condition-case nil
  				;; In case of problem, ignore it.
- 				(project-am-load-makefile subdir subdir)
+ 				(project-am-load-makefile subdir)
  			      (error nil)))
  		    ;; If we have tmp, then rescan it only if deep mode.
  		    (if ede-deep-rescan
- 			(project-rescan tmp subdir)))
+ 			(project-rescan tmp)))
  		  ;; Tac tmp onto our list of things to keep, but only
  		  ;; if tmp was found.
  		  (when tmp
@@ -778,24 +810,22 @@ nil means that this buffer belongs to no-one."
 
 (defmethod ede-buffer-mine ((this project-am-objectcode) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
+  (member (file-name-nondirectory (buffer-file-name buffer))
 	  (oref this :source)))
 
 (defmethod ede-buffer-mine ((this project-am-texinfo) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (let ((bfn (file-relative-name (buffer-file-name buffer)
-				 (oref this :path))))
-    (or (string= (oref this :name)  bfn)
-	(member bfn (oref this :include)))))
+  (let ((bfn (buffer-file-name buffer)))
+    (or (string= (oref this :name)  (file-name-nondirectory bfn))
+	(member (file-name-nondirectory bfn) (oref this :include)))))
 
 (defmethod ede-buffer-mine ((this project-am-man) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (string= (oref this :name)
-	   (file-relative-name (buffer-file-name buffer) (oref this :path))))
+  (string= (oref this :name) (buffer-file-name buffer)))
 
 (defmethod ede-buffer-mine ((this project-am-lisp) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
+  (member (file-name-nondirectory (buffer-file-name buffer))
 	  (oref this :source)))
 
 (defmethod project-am-subtree ((ampf project-am-makefile) subdir)
@@ -952,7 +982,7 @@ Kill the Configure buffer if it was not already in a buffer."
 				(t acf))))
 	    (if (> (length outfiles) 1)
 		(setq configfiles outfiles)
-	      (setq configfiles (split-string (car outfiles) "\\s-" t)))
+	      (setq configfiles (split-string (car outfiles) " " t)))
 	    )
 	  ))
       )

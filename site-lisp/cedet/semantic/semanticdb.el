@@ -1,10 +1,10 @@
 ;;; semanticdb.el --- Semantic tag database manager
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Eric M. Ludlam
+;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
-;; X-RCS: $Id: semanticdb.el,v 1.140 2010/03/15 13:40:55 xscript Exp $
+;; X-RCS: $Id: semanticdb.el,v 1.138 2009/09/23 01:26:41 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -57,7 +57,7 @@ mechanism.")
 
 (defvar semanticdb-default-find-index-class 'semanticdb-find-search-index
   "The default type of search index to use for a `semanticdb-table's.
-This can be changed to try out new types of search indices.")
+This can be changed to try out new types of search indicies.")
 (make-variable-buffer-local 'semanticdb-default-find=index-class)
 
 
@@ -535,25 +535,10 @@ Optional argument FORCE will force a refresh even if the file in question
 is not in a buffer.  Avoid using FORCE for most uses, as an old cache
 may be sufficient for the general case.  Forced updates can be slow.
 This will call `semantic-fetch-tags' if that file is in memory."
-  (cond
-   ;;
-   ;; Already in a buffer, just do it.
-   ((semanticdb-in-buffer-p obj)
-    (semanticdb-set-buffer obj)
-    (semantic-fetch-tags))
-   ;;
-   ;; Not in a buffer.  Forcing a load.  
-   (force
-    ;; Patch from Iain Nicol. -- 
-    ;; @TODO: I wonder if there is a way to recycle 
-    ;;        semanticdb-create-table-for-file-not-in-buffer
+  (when (or (semanticdb-in-buffer-p obj) force)
     (save-excursion
-      (let ((buff (semantic-find-file-noselect 
-		   (semanticdb-full-filename obj))))
-	(set-buffer buff)
-	(semantic-fetch-tags)
-	;; Kill off the buffer if it didn't exist when we were called.
-	(kill-buffer buff))))))
+      (semanticdb-set-buffer obj)
+      (semantic-fetch-tags))))
 
 (defmethod semanticdb-needs-refresh-p ((obj semanticdb-table))
   "Return non-nil of OBJ's tag list is out of date.
@@ -562,7 +547,8 @@ The file associated with OBJ does not need to be in a buffer."
 	 (buff (semanticdb-in-buffer-p obj))
 	 )
     (if buff
-	(with-current-buffer buff
+	(save-excursion
+	  (set-buffer buff)
 	  ;; Use semantic's magic tracker to determine of the buffer is up
 	  ;; to date or not.
 	  (not (semantic-parse-tree-up-to-date-p))
@@ -719,14 +705,14 @@ Uses `semanticdb-persistent-path' to determine the return value."
       nil))
 
 (defvar semanticdb-match-any-mode nil
-  "Non-nil to temporarily search any major mode for a tag.
+  "Non-nil to temporarilly search any major mode for a tag.
 If a particular major mode wants to search any mode, put the
 `semantic-match-any-mode' symbol onto the symbol of that major mode.
 Do not set the value of this variable permanently.")
 
 (defmacro semanticdb-with-match-any-mode (&rest body)
-  "A Semanticdb search occurring withing BODY will search tags in all modes.
-This temporarily sets `semanticdb-match-any-mode' while executing BODY."
+  "A Semanticdb search occuring withing BODY will search tags in all modes.
+This temporarilly sets `semanticdb-match-any-mode' while executing BODY."
   `(let ((semanticdb-match-any-mode t))
      ,@body))
 (put 'semanticdb-with-match-any-mode 'lisp-indent-function 0)
@@ -774,7 +760,7 @@ local variable."
 (defcustom semanticdb-project-roots nil
   "*List of directories, where each directory is the root of some project.
 All subdirectories of a root project are considered a part of one project.
-Values in this string can be overridden by project management programs
+Values in this string can be overriden by project management programs
 via the `semanticdb-project-root-functions' variable."
   :group 'semanticdb
   :type '(repeat string))

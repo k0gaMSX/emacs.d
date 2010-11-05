@@ -1,10 +1,10 @@
 ;;; semantic-ia.el --- Interactive Analysis functions
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Eric M. Ludlam
+;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
-;; X-RCS: $Id: semantic-ia.el,v 1.34 2010/02/26 01:58:36 zappo Exp $
+;; X-RCS: $Id: semantic-ia.el,v 1.32 2009/09/11 23:36:20 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -57,6 +57,14 @@
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
+(defvar semantic-ia-cache nil
+  "Cache of the last completion request.
+Of the form ( POINT . COMPLETIONS ) where POINT is a location in the
+buffer where the completion was requested.  COMPLETONS is the list
+of semantic tag names that provide logical completions from that
+location.")
+(make-variable-buffer-local 'semantic-ia-cache)
+
 ;;; COMPLETION HELPER
 ;;
 ;; This overload function handles inserting a tag
@@ -78,16 +86,20 @@
 	   (insert "("))
 	  (t nil))))
 
-(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated
-  "`Semantic-ia-get-completions' is obsolete.
-Use `semantic-analyze-possible-completions' instead.")
-
-(defun semantic-ia-get-completions-deprecated (context point)
-  "A function to help transition away from `semantic-ia-get-completions'.
-Return completions based on CONTEXT at POINT.
-You should not use this, nor the aliased version.
-Use `semantic-analyze-possible-completions' instead."
-    (semantic-analyze-possible-completions context))
+(defun semantic-ia-get-completions (context point)
+  "Fetch the completion of CONTEXT at POINT.
+Supports caching."
+  ;; Cache the current set of symbols so that we can get at
+  ;; them quickly the second time someone presses the
+  ;; complete button.
+  (let ((symbols
+	 (if (and semantic-ia-cache
+		  (= point (car semantic-ia-cache)))
+	     (cdr semantic-ia-cache)
+	   (semantic-analyze-possible-completions context))))
+    ;; Set the cache
+    (setq semantic-ia-cache (cons point symbols))
+    symbols))
 
 ;;;###autoload
 (defun semantic-ia-complete-symbol (point)
@@ -102,7 +114,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   ;;
   ;; The second step derives completions from that context.
   (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-analyze-possible-completions a))
+	 (syms (semantic-ia-get-completions a point))
 	 (pre (car (reverse (oref a prefix))))
 	 )
     ;; If PRE was actually an already completed symbol, it doesn't
@@ -158,7 +170,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   (interactive "d")
   (require 'imenu)
   (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-analyze-possible-completions a))
+	 (syms (semantic-ia-get-completions a point))
 	 )
     ;; Complete this symbol.
     (if (not syms)
@@ -200,7 +212,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   "Pop up a tooltip for completion at POINT."
   (interactive "d")
   (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-analyze-possible-completions a))
+	 (syms (semantic-ia-get-completions a point))
          (x (mod (- (current-column) (window-hscroll))
                  (window-width)))
          (y (save-excursion

@@ -1,9 +1,9 @@
 ;;; semantic-symref-grep.el --- Symref implementation using find/grep
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: semantic-symref-grep.el,v 1.9 2010/03/15 13:40:55 xscript Exp $
+;; X-RCS: $Id: semantic-symref-grep.el,v 1.7 2009/06/24 23:13:40 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -105,9 +105,9 @@ Optional argument MODE specifies the `major-mode' to test."
 (defun semantic-symref-grep-use-template (rootdir filepattern grepflags greppattern)
   "Use the grep template expand feature to create a grep command.
 ROOTDIR is the root location to run the `find' from.
-FILEPATTERN is a string representing find flags for searching file patterns.
+FILEPATTERN is a string represeting find flags for searching file patterns.
 GREPFLAGS are flags passed to grep, such as -n or -l.
-GREPPATTERN is the pattern used by grep."
+GREPPATTERN is the pattren used by grep."
   ;; We have grep-compute-defaults.  Lets use it.
   (grep-compute-defaults)
   (let* ((grep-expand-keywords semantic-symref-grep-expand-keywords)
@@ -120,12 +120,6 @@ GREPPATTERN is the pattern used by grep."
       (setq cmd (replace-match rootdir t t cmd 1)))
     ;;(message "New command: %s" cmd)
     cmd))
-
-(defcustom semantic-symref-grep-shell "sh"
-  "The shell command to use for executing find/grep.
-This shell should support pipe redirect syntax."
-  :group 'semantic
-  :type 'string)
 
 (defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
   "Perform a search with Grep."
@@ -164,7 +158,8 @@ This shell should support pipe redirect syntax."
 	 (ans nil)
 	 )
     
-    (with-current-buffer b
+    (save-excursion
+      (set-buffer b)
       (erase-buffer)
       (setq default-directory rootdir)
 
@@ -176,10 +171,10 @@ This shell should support pipe redirect syntax."
 	  (let ((cmd (concat "find " default-directory " -type f " filepattern " -print0 "
 			     "| xargs -0 grep -H " grepflags "-e " greppat)))
 	    ;;(message "Old command: %s" cmd)
-	    (call-process semantic-symref-grep-shell nil b nil "-c" cmd)
+	    (call-process "sh" nil b nil "-c" cmd)
 	    )
 	(let ((cmd (semantic-symref-grep-use-template rootdir filepattern grepflags greppat)))
-	  (call-process semantic-symref-grep-shell nil b nil "-c" cmd))
+	  (call-process "sh" nil b nil "-c" cmd))
 	))
     (setq ans (semantic-symref-parse-tool-output tool b))
     ;; Return the answer
