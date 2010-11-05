@@ -1,0 +1,9 @@
+*.elc
+CVS/
+.cvsignore
+trampver.texi
+tramp.html
+tramp.dvitramp.dvi
+tramp-xemacs.html
+tramp-emacs.html
+tramp.dvi

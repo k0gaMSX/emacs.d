@@ -1,0 +1,9 @@
+*.elc
+CVS/
+.cvsignore
+*script
+contrib-loaddefs.el
+wisent-csharp-wy.el
+wisent-php-wy.el
+wisent-ruby-wy.el
+

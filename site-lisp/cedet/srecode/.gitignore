@@ -1,0 +1,6 @@
+*.elc
+CVS/
+.cvsignore
+srecode.info
+srecode-template-wy.el
+srecode-loaddefs.el

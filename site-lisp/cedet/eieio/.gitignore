@@ -1,0 +1,6 @@
+*.elc
+CVS/
+.cvsignore
+*.info
+eieio-loaddefs.el
+*script

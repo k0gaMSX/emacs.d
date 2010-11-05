@@ -1,0 +1,6 @@
+*.elc
+CVS/
+.cvsignore
+cedet.info
+cedet-loaddefs.el
+*script

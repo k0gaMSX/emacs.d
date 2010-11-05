@@ -1,0 +1,7 @@
+*.elc
+CVS/
+.cvsignore
+.deps/
+Makefile
+doxymacs_parser
+doxymacs_parser.o

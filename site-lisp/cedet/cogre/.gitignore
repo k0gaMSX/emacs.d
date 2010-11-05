@@ -1,0 +1,7 @@
+*.elc
+CVS/
+.cvsignore
+*script
+cogre-loaddefs.el
+*.info
+wisent-dot-wy.el

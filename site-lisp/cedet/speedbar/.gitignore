@@ -1,0 +1,5 @@
+*.elc
+CVS/
+.cvsignore
+speedbar.info
+speedbar-loaddefs.el

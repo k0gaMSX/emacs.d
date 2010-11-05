@@ -1,0 +1,6 @@
+*.elc
+CVS/
+.cvsignore
+*script
+ede.info
+ede-loaddefs.el

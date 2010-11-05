@@ -1,0 +1,7 @@
+*.elc
+CVS/
+.cvsignore
+semantic-scm-by.el
+semantic-make-by.el
+semantic-erlang-by.el
+semantic-c-by.el

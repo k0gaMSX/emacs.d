@@ -1,0 +1,6 @@
+*.elc
+CVS/
+.cvsignore
+*script
+semantic-loaddefs.el
+semantic-grammar-wy.el
