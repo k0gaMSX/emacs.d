@@ -757,7 +757,7 @@
 ;(turn-on-auto-fill)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
-
+(setq x-select-enable-clipboard t)
 
 
 
