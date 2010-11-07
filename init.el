@@ -1070,7 +1070,8 @@
     (while (< i 254)
       (setq i (+ i 1))
       (insert (format "%4d %02X %c\n" i i i))))
-  (goto-line 0))
+  (goto-char (point-min)))
+
 
 
 
