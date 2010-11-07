@@ -385,6 +385,39 @@
 
 
 
+
+;; ****************************************************************************
+;; Autocomplete modes
+;; ****************************************************************************
+
+
+(require 'auto-complete)
+(require 'auto-complete-config)
+(ac-config-default)
+(global-auto-complete-mode t)
+(add-to-list
+ 'ac-dictionary-directories "~/.emacs.d/site-lisp/auto-complete//ac-dict")
+
+
+
+(set-default 'ac-sources
+             '(ac-source-yasnippet
+               ac-source-abbrev
+               ac-source-words-in-buffer))
+
+(require 'dropdown-list)
+(setq yas/prompt-functions '(yas/dropdown-prompt
+                             yas/ido-prompt
+                             yas/completing-prompt))
+
+;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
+;(global-set-key "\M-/" 'ac-start)
+(define-key ac-complete-mode-map "\C-n" 'ac-next)
+(define-key ac-complete-mode-map "\C-p" 'ac-previous)
+(define-key ac-complete-mode-map [(return)] 'ac-stop)
+
+
+
 ;; ****************************************************************************
 ;; C modes
 ;; ****************************************************************************
@@ -866,36 +899,6 @@
        (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol)
        (menu-bar-mode nil)))
 
-
-
-
-
-
-
-;; ****************************************************************************
-;; Autocomplete modes
-;; ****************************************************************************
-
-(require 'auto-complete)
-(require 'auto-complete-config)
-(ac-config-default)
-(global-auto-complete-mode t)
-
-(set-default 'ac-sources
-             '(ac-source-yasnippet
-               ac-source-abbrev
-               ac-source-words-in-buffer))
-
-(require 'dropdown-list)
-(setq yas/prompt-functions '(yas/dropdown-prompt
-                             yas/ido-prompt
-                             yas/completing-prompt))
-
-;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
-(global-set-key "\M-/" 'ac-start)
-(define-key ac-complete-mode-map "\C-n" 'ac-next)
-(define-key ac-complete-mode-map "\C-p" 'ac-previous)
-(define-key ac-complete-mode-map [(return)] 'ac-stop)
 
 
 
