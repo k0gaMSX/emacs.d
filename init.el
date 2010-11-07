@@ -801,6 +801,8 @@
 (global-set-key "\C-cn" 'next-error)
 (global-set-key "\C-cp" 'previous-error)
 (global-set-key [(meta g)]  'goto-line)
+(global-set-key [ (meta n) ] 'forward-paragraph)
+(global-set-key [ (meta p) ] 'backward-paragraph)
 
 
 (defun goto-column ()
