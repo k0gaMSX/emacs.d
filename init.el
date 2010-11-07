@@ -160,6 +160,8 @@
  '(semanticdb-default-save-directory "~/.emacs.d/cache")
  '(semanticdb-default-system-save-directory "~/.emacs.d/cache")
  '(shell-file-name "bash")
+ '(srecode-map-load-path (quote ("/home/roberto/.emacs.d/site-lisp/cedet/srecode/templates/")))
+ '(srecode-map-save-file "/home/roberto/.emacs.d/cache/srecode-map")
  '(time-stamp-format time-format)
  '(timeclock-get-workday-function (quote askworkday))
  '(timeclock-workday 32400)
