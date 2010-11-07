@@ -557,14 +557,57 @@
 ;; GUD
 ;; ****************************************************************************
 
-(require 'gud)
-(require 'gdb-ui)
+(require 'gdb-mi)
 (require 'highline)
 
-(global-set-key [f11] 'gdba)
+(global-set-key [f11] 'gdb)
 
-;; (add-hook 'pre-command-hook 'highline-unhighlight-current-line)
-;; (add-hook 'post-command-hook 'highline-highlight-current-line)
+
+
+(defvar my-gdb-line nil
+  "Last line highlithed by gdb")
+
+
+
+(defvar my-gdb-file nil
+  "Last file highlithed by gdb")
+
+
+
+
+(defun my-goto-file-line (file line)
+  (find-file file)
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (setq my-gdb-line line)
+  (setq my-gdb-file file))
+
+
+(defadvice my-gdb-reset
+  (after gdb-reset activate)
+  (my-goto-file-line my-gdb-file my-gdb-line)
+  (save-buffers-kill-terminal)
+  (highline-unhighlight-current-line)
+  (switch-to-buffer buffer))
+
+
+(add-hook 'gdb-stopped-hooks
+          '(lambda (arg)
+             (let*
+                 ((frame (cdr (nth 2 arg)))
+                  (line (bindat-get-field frame 'line))
+                  (file (bindat-get-field frame 'fullname))
+                  (buffer (current-buffer)))
+               (when (and (stringp line) (stringp file))
+                 (when (and my-gdb-file my-gdb-line)
+                   (my-goto-file-line my-gdb-file my-gdb-line)
+                   (highline-unhighlight-current-line))
+                 (my-goto-file-line file (string-to-number line))
+                 (highline-highlight-current-line)
+                 (switch-to-buffer buffer)))))
+
+
+
 
 (add-hook 'gdb-mode-hook
           '(lambda ()
