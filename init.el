@@ -608,29 +608,24 @@
 ;; ****************************************************************************
 
 (require 'compile)
-
-(defun autocompile nil
-  "compile itself if ~/.emacs"
-  (interactive)
-  (require 'bytecomp)
-  (if (or (string= (buffer-file-name)
-                   (expand-file-name (concat default-directory ".emacs")))
-          (string= (buffer-file-name)
-                   (expand-file-name (concat default-directory "init.el"))))
-      (byte-compile-file (buffer-file-name))))
+(require 'bytecomp)
 
 
+(global-set-key "\C-ci"
+                '(lambda nil
+                   (interactive)
+                   (find-file "~/.emacs.d/init.el")))
 
-(defun my-open-dot-emacs ()
-  "Opening `~/.emacs.d/init.el'."
-  (interactive)
-  (find-file "~/.emacs.d/init.el"))
+(add-hook 'after-save-hook
+          '(lambda nil
+             (if (or (string= (buffer-file-name)
+                              (expand-file-name
+                               (concat default-directory ".emacs")))
+                     (string= (buffer-file-name)
+                              (expand-file-name
+                               (concat default-directory "init.el"))))
+                 (byte-compile-file (buffer-file-name)))))
 
-
-(global-set-key "\C-ci" 'my-open-dot-emacs)
-
-
-(add-hook 'after-save-hook 'autocompile)
 
 (add-hook 'emacs-lisp-mode-hook
              (lambda ()
