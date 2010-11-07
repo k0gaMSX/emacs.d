@@ -1,9 +1,9 @@
 ;;; semantic-scope.el --- Analyzer Scope Calculations
 
-;; Copyright (C) 2007, 2008, 2009 Eric M. Ludlam
+;; Copyright (C) 2007, 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: semantic-scope.el,v 1.34 2009/10/08 15:32:01 zappo Exp $
+;; X-RCS: $Id: semantic-scope.el,v 1.40 2010-04-11 00:48:34 scymtym Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,7 +25,7 @@
 ;; Calculate information about the current scope.
 ;;
 ;; Manages the current scope as a structure that can be cached on a
-;; per-file basis and recycled between different occurances of
+;; per-file basis and recycled between different occurrences of
 ;; analysis on different parts of a file.
 ;;
 ;; Pattern for Scope Calculation
@@ -61,7 +61,7 @@
 	       :documentation
 	       "The list of types currently in scope.
 For C++, this would contain anonymous namespaces known, and
-anything labled by a `using' statement.")
+anything labeled by a `using' statement.")
    (parents :initform nil
 	    :documentation
 	    "List of parents in scope w/in the body of this function.
@@ -233,8 +233,11 @@ are from nesting data types."
 	   )
       ;; In case of arg lists or some-such, throw out non-types.
       (while (and stack (not (semantic-tag-of-class-p pparent 'type)))
-	(setq stack (cdr stack)
-	            pparent (car (cdr stack))))
+	(setq stack (cdr stack) pparent (car (cdr stack))))
+
+      ;; Remove duplicates
+      (while (member pparent scopetypes)
+	(setq stack (cdr stack) pparent (car (cdr stack))))
 
       ;; Step 1:
       ;;    Analyze the stack of tags we are nested in as parents.
@@ -382,7 +385,7 @@ without use of \"object.function()\" style syntax due to an
 implicit \"object\".")
 
 (defun semantic-analyze-scoped-tags-default (typelist halfscope)
-  "Return accessable tags when TYPELIST and HALFSCOPE is in scope.
+  "Return accessible tags when TYPELIST and HALFSCOPE is in scope.
 HALFSCOPE is the current scope partially initialized.
 Tags returned are not in the global name space, but are instead
 scoped inside a class or namespace.  Such items can be referenced
@@ -550,8 +553,8 @@ PROTECTION specifies the type of access requested, such as 'public or 'private."
 Argument SCOPE specify additional tags that are in scope
 whose tags can be searched when needed, OR it may be a scope object.
 ACCESS is the level of access we filter on child supplied tags.
-For langauges with protection on specific methods or slots,
-it should strip out those not accessable by methods of TYPE.
+For languages with protection on specific methods or slots,
+it should strip out those not accessible by methods of TYPE.
 An ACCESS of 'public means not in a method of a subclass of type.
 A value of 'private means we can access private parts of the originating
 type."
@@ -595,6 +598,8 @@ whose tags can be searched when needed, OR it may be a scope object."
       ;;         for recycling later?  Should this become a helpful
       ;;         extra routine?
       (when (and parents (semantic-tag-with-position-p type))
+	;; @NOTE - Does this save-excursion prevent the calculated
+	;; scope from working properly in any cases?
 	(save-excursion
 	  ;; If TYPE has a position, go there and get the scope.
 	  (semantic-go-to-tag type)
@@ -604,7 +609,7 @@ whose tags can be searched when needed, OR it may be a scope object."
 	  ;; to do any of the stuff related to variables and what-not.
 	  (setq tmpscope (semantic-scope-cache "mini"))
 	  (let* ( ;; Step 1:
-		 (scopetypes (semantic-analyze-scoped-types (point)))
+		 (scopetypes (cons type (semantic-analyze-scoped-types (point))))
 		 (parents (semantic-analyze-scope-nested-tags (point) scopetypes))
 		 ;;(parentinherited (semantic-analyze-scope-lineage-tags parents scopetypes))
 		 (lscope nil)
@@ -655,17 +660,15 @@ The class returned from the scope calculation is variable
   (if (not (and (featurep 'semanticdb) semanticdb-current-database))
       nil ;; Don't do anything...
     (if (not point) (setq point (point)))
-    (when (interactive-p)
+    (when (cedet-called-interactively-p 'any)
       (semantic-fetch-tags)
-      (semantic-scope-reset-cache)
-      )
+      (semantic-scope-reset-cache))
     (save-excursion
       (goto-char point)
       (let* ((TAG  (semantic-current-tag))
 	     (scopecache
 	      (semanticdb-cache-get semanticdb-current-table
-				    semantic-scope-cache))
-	     )
+				    semantic-scope-cache)))
 	(when (not (semantic-equivalent-tag-p TAG (oref scopecache tag)))
 	  (semantic-reset scopecache))
 	(if (oref scopecache tag)
@@ -718,14 +721,13 @@ The class returned from the scope calculation is variable
 	;; Make sure we become dependant on the typecache.
 	(semanticdb-typecache-add-dependant scopecache)
 	;; Handy debug output.
-	(when (interactive-p)
-	  (data-debug-show scopecache)
-	  )
+	(when (cedet-called-interactively-p 'any)
+	  (data-debug-show scopecache))
 	;; Return ourselves
 	scopecache))))
 
 (defun semantic-scope-find (name &optional class scope-in)
-  "Find the tag with NAME, and optinal CLASS in the current SCOPE-IN.
+  "Find the tag with NAME, and optional CLASS in the current SCOPE-IN.
 Searches various elements of the scope for NAME.  Return ALL the
 hits in order, with the first tag being in the closest scope."
   (let ((scope (or scope-in (semantic-calculate-scope)))

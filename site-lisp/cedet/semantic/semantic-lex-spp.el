@@ -1,8 +1,8 @@
 ;;; semantic-lex-spp.el --- Semantic Lexical Pre-processor
 
-;;; Copyright (C) 2006, 2007, 2008, 2009 Eric M. Ludlam
+;;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Eric M. Ludlam
 
-;; X-CVS: $Id: semantic-lex-spp.el,v 1.50 2009/10/19 23:49:54 zappo Exp $
+;; X-CVS: $Id: semantic-lex-spp.el,v 1.53 2010-04-18 20:40:15 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -92,7 +92,7 @@ added and removed from this symbol table.")
 (make-variable-buffer-local 'semantic-lex-spp-dynamic-macro-symbol-obarray)
 
 (defvar semantic-lex-spp-dynamic-macro-symbol-obarray-stack nil
-  "A stack of obarrays for temporarilly scoped macro values.")
+  "A stack of obarrays for temporarily scoped macro values.")
 (make-variable-buffer-local 'semantic-lex-spp-dynamic-macro-symbol-obarray-stack)
 
 (defvar semantic-lex-spp-expanded-macro-stack nil
@@ -134,7 +134,7 @@ currently being expanded."
 ;;
 (defsubst semantic-lex-spp-symbol (name)
   "Return spp symbol with NAME or nil if not found.
-The searcy priority is:
+The search priority is:
   1. DYNAMIC symbols
   2. PROJECT specified symbols.
   3. SYSTEM specified symbols."
@@ -174,10 +174,42 @@ The searcy priority is:
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray-stack
 	    (make-vector 13 0))))
 
+(defun semantic-lex-spp-value-valid-p (value)
+  "Return non-nil if VALUE is valid."
+  (or (null value)
+      (stringp value)
+      (and (consp value)
+	   (or (semantic-lex-token-p (car value))
+	       (eq (car (car value)) 'spp-arg-list)))))
+
+(defvar semantic-lex-spp-debug-symbol nil
+  "A symbol to break on if it is being set somewhere.")
+
+(defun semantic-lex-spp-enable-debug-symbol (sym)
+  "Enable debugging for symbol SYM.
+Disable debugging by entering nothing."
+  (interactive "sSymbol: ")
+  (if (string= sym "")
+      (setq semantic-lex-spp-debug-symbol nil)
+    (setq semantic-lex-spp-debug-symbol sym)))
+
+(defmacro semantic-lex-spp-validate-value (name value)
+  "Validate the NAME and VALUE of a macro before it is set."
+;  `(progn
+;     (when (not (semantic-lex-spp-value-valid-p ,value))
+;       (error "Symbol \"%s\" with bogus value %S" ,name ,value))
+;     (when (and semantic-lex-spp-debug-symbol
+;		(string= semantic-lex-spp-debug-symbol name))
+;       (debug))
+;     )
+  nil
+  )
+
 (defun semantic-lex-spp-symbol-set (name value &optional obarray-in)
   "Set value of spp symbol with NAME to VALUE and return VALUE.
 If optional OBARRAY-IN is non-nil, then use that obarray instead of
 the dynamic map."
+  (semantic-lex-spp-validate-value name value)
   (if (and (stringp value) (string= value "")) (setq value nil))
   (set (intern name (or obarray-in
 			(semantic-lex-spp-dynamic-map)))
@@ -193,6 +225,7 @@ the dynamic map."
 (defun semantic-lex-spp-symbol-push (name value)
   "Push macro NAME with VALUE into the map.
 Reverse with `semantic-lex-spp-symbol-pop'."
+  (semantic-lex-spp-validate-value name value)
   (let* ((map (semantic-lex-spp-dynamic-map))
 	 (stack (semantic-lex-spp-dynamic-map-stack))
 	 (mapsym (intern name map))
@@ -384,7 +417,7 @@ ARGVALUES are values for any arg list, or nil."
 If TOK is made of multiple tokens, convert those to text.  This
 conversion is needed if a macro has a merge symbol in it that
 combines the text of two previously distinct symbols.  For
-exampe, in c:
+example, in c:
 
 #define (a,b) a ## b;
 
@@ -865,44 +898,45 @@ and variable state from the current buffer."
 			   semantic-lex-spp-expanded-macro-stack
 			   ))
 	 )
-    (save-excursion
-      (set-buffer buf)
-      (erase-buffer)
-      ;; Below is a painful hack to make sure everything is setup correctly.
-      (when (not (eq major-mode mode))
-	(save-match-data
+    (if (> semantic-lex-spp-hack-depth 5)
+	nil
+      (with-current-buffer buf
+	(erase-buffer)
+	;; Below is a painful hack to make sure everything is setup correctly.
+	(when (not (eq major-mode mode))
+	  (save-match-data
 
-	  ;; Protect against user-hooks that throw errors.
-	  (condition-case nil
-	      (funcall mode)
-	    (error nil))
+	    ;; Protect against user-hooks that throw errors.
+	    (condition-case nil
+		(funcall mode)
+	      (error nil))
 
-	  ;; Hack in mode-local
-	  (activate-mode-local-bindings)
+	    ;; Hack in mode-local
+	    (activate-mode-local-bindings)
 
-	  ;; CHEATER!  The following 3 lines are from
-	  ;; `semantic-new-buffer-fcn', but we don't want to turn
-	  ;; on all the other annoying modes for this little task.
-	  (setq semantic-new-buffer-fcn-was-run t)
-	  (semantic-lex-init)
-	  (semantic-clear-toplevel-cache)
-	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		       t)
-	  ))
+	    ;; CHEATER!  The following 3 lines are from
+	    ;; `semantic-new-buffer-fcn', but we don't want to turn
+	    ;; on all the other annoying modes for this little task.
+	    (setq semantic-new-buffer-fcn-was-run t)
+	    (semantic-lex-init)
+	    (semantic-clear-toplevel-cache)
+	    (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+			 t)
+	    ))
 
-      ;; Second Cheat: copy key variables regarding macro state from the
-      ;; the originating buffer we are parsing.  We need to do this every time
-      ;; since the state changes.
-      (dolist (V important-vars)
-	(set V (semantic-buffer-local-value V origbuff)))
-      (insert text)
-      (goto-char (point-min))
+	;; Second Cheat: copy key variables regarding macro state from the
+	;; the originating buffer we are parsing.  We need to do this every time
+	;; since the state changes.
+	(dolist (V important-vars)
+	  (set V (semantic-buffer-local-value V origbuff)))
+	(insert text)
+	(goto-char (point-min))
 
-      (setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max))))
+	(setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max))))
 
-    (dolist (tok fresh-toks)
-      (when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
-	(setq toks (cons tok toks))))
+      (dolist (tok fresh-toks)
+	(when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
+	  (setq toks (cons tok toks)))))
 
     (nreverse toks)))
 
@@ -1124,33 +1158,33 @@ The VALUE is a spp lexical table."
       (prin1 (car sym))
       (let* ((first (car (cdr sym)))
 	     (rest (cdr sym)))
-	(when (not (listp first))
-	  (error "Error in macro \"%s\"" (car sym)))
-	(when (eq (car first) 'spp-arg-list)
-	  (princ " ")
-	  (prin1 first)
-	  (setq rest (cdr rest))
-	  )
-
-	(when rest
-	  (princ " . ")
-	  (let ((len (length (cdr rest))))
-	    (cond ((< len 2)
-		   (condition-case nil
-		       (prin1 rest)
-		     (error
-		      (princ "nil ;; Error writing macro\n"))))
-		  ((< len semantic-lex-spp-macro-max-length-to-save)
-		   (princ "\n              ")
-		   (condition-case nil
-		       (prin1 rest)
-		     (error
-		      (princ "nil ;; Error writing macro\n          ")))
-		   )
-		  (t ;; Too Long!
-		   (princ "nil ;; Too Long!\n          ")
-		   ))))
-	)
+	(if (not (listp first))
+	    (insert "nil ;; bogus macro found.\n")
+	  (when (eq (car first) 'spp-arg-list)
+	    (princ " ")
+	    (prin1 first)
+	    (setq rest (cdr rest))
+	    )
+	
+	  (when rest
+	    (princ " . ")
+	    (let ((len (length (cdr rest))))
+	      (cond ((< len 2)
+		     (condition-case nil
+			 (prin1 rest)
+		       (error
+			(princ "nil ;; Error writing macro\n"))))
+		    ((< len semantic-lex-spp-macro-max-length-to-save)
+		     (princ "\n              ")
+		     (condition-case nil
+			 (prin1 rest)
+		       (error
+			(princ "nil ;; Error writing macro\n          ")))
+		     )
+		    (t ;; Too Long!
+		     (princ "nil ;; Too Long!\n          ")
+		     ))))
+	  ))
       (princ ")\n          ")
       )
     (princ ")\n"))

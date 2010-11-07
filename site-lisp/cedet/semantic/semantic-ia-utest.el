@@ -1,9 +1,9 @@
 ;;; semantic-ia-utest.el --- Analyzer unit tests
 
-;; Copyright (C) 2008, 2009 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: semantic-ia-utest.el,v 1.31 2009/09/13 11:43:53 zappo Exp $
+;; X-RCS: $Id: semantic-ia-utest.el,v 1.33 2010-08-05 03:03:39 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,9 +25,10 @@
 ;; Use marked-up files in the test directory and run the analyzer
 ;; on them.  Make sure the answers are correct.
 ;;
-;; Each file has cursor keys in them of the form:
+;; Each file has cursor keys in them of the form of special comments:
 ;;   // -#- ("ans1" "ans2" )
-;; where # is 1, 2, 3, etc, and some sort of answer list.
+;; where # is 1, 2, 3, etc, and some sort of answer list (you have to
+;; replace '//' with the `comment-start' for the used language).
 
 ;;; Code:
 (require 'cedet-utests)
@@ -50,6 +51,7 @@
     "tests/testsppcomplete.c"
     "tests/testvarnames.c"
     "tests/testjavacomp.java"
+    "tests/testf90.f90"
     )
   "List of files with analyzer completion test points.")
 
@@ -181,8 +183,10 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	 )
     ;; Keep looking for test points until we run out.
     (while (save-excursion
-	     (setq regex-p (concat "//\\s-*-" (number-to-string idx) "-" )
-		   regex-a (concat "//\\s-*#" (number-to-string idx) "#" ))
+	     (setq regex-p (concat comment-start-skip "\\s-*-"
+				   (number-to-string idx) "-" )
+		   regex-a (concat comment-start-skip "\\s-*#"
+				   (number-to-string idx) "#" ))
 	     (goto-char (point-min))
 	     (save-match-data
 	       (when (re-search-forward regex-p nil t)
@@ -201,7 +205,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 		(condition-case nil
 		    (semantic-analyze-possible-completions ctxt)
 		  (error nil))))
-	  (setq actual (mapcar 'semantic-tag-name acomp)))
+	  (setq actual (mapcar 'semantic-format-tag-name acomp)))
 
 	(goto-char a)
 
@@ -210,6 +214,9 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	      (setq desired (read bss))
 	    (error (setq desired (format "  FAILED TO PARSE: %S"
 					 bss)))))
+
+	(setq actual (sort actual 'string<))
+	(setq desired (sort desired 'string<))
 
 	(if (equal actual desired)
 	    (setq pass (cons idx pass))
@@ -253,7 +260,8 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	 )
     ;; Keep looking for test points until we run out.
     (while (save-excursion
-	     (setq regex-p (concat "//\\s-*\\^" (number-to-string idx) "^" )
+	     (setq regex-p (concat comment-start-skip
+				   "\\s-*\\^" (number-to-string idx) "^" )
 		   )
 	     (goto-char (point-min))
 	     (save-match-data
@@ -324,9 +332,12 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	    ;; We failed.
 	    (setq fail (cons idx fail))
 	    (semantic-ia-utest-log
-	     "    Failed %d.  For %s (Num impls %d) (Num protos %d)"
-	     idx (if ct (semantic-tag-name ct) "<No tag found>")
-	     (length impl) (length proto))
+	     "    Failed %d.  For %S (Impls %S) (Protos %S)"
+	     idx
+	     (if ct (semantic-format-tag-name ct) "<No tag found>")
+	     (mapcar 'semantic-format-tag-name impl)
+	     (mapcar 'semantic-format-tag-name proto)
+	     )
 	    (add-to-list 'semantic-ia-utest-error-log-list
 			 (list (buffer-name) idx)
 			 )
@@ -371,7 +382,8 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	 )
     ;; Keep looking for test points until we run out.
     (while (save-excursion
-	     (setq regex-p (concat "//\\s-*\\%" (number-to-string idx) "%" )
+	     (setq regex-p (concat comment-start-skip "\\s-*\\%"
+				   (number-to-string idx) "%" )
 		   )
 	     (goto-char (point-min))
 	     (save-match-data
@@ -383,7 +395,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	     tag)
 
       (setq actual-result (semantic-symref-find-references-by-name
-			   (semantic-tag-name tag) 'target
+			   (semantic-format-tag-name tag) 'target
 			   'symref-tool-used))
 
       (if (not actual-result)
@@ -469,13 +481,14 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	 )
     ;; Keep looking for test points until we run out.
     (while (save-excursion
-	     (setq regex-p (concat "//\\s-*@"
+	     (setq regex-p (concat comment-start-skip "\\s-*@"
 				   (number-to-string idx)
-				   "@\\s-+\\(\\w+\\)" ))
+				   "@\\s-+\\w+" ))
 	     (goto-char (point-min))
 	     (save-match-data
 	       (when (re-search-forward regex-p nil t)
-		 (goto-char (match-beginning 1))
+		 (goto-char (match-end 0))
+		 (skip-syntax-backward "w")
 		 (setq desired (read (buffer-substring (point) (point-at-eol))))
 		 (setq start (match-beginning 0))
 		 (goto-char start)

@@ -1,8 +1,8 @@
 ;;; semantic-tag.el --- tag creation and access
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009 Eric M. Ludlam
+;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010 Eric M. Ludlam
 
-;; X-CVS: $Id: semantic-tag.el,v 1.72 2009/09/15 00:19:16 zappo Exp $
+;; X-CVS: $Id: semantic-tag.el,v 1.75 2010-03-15 13:40:55 xscript Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -40,7 +40,7 @@
 ;; II.  There is also an API for tag creation.  Use `semantic-tag' to create
 ;;     a new tag.
 ;;
-;; III.  Tag Comparison.  Allows explicit or comparitive tests to see
+;; III.  Tag Comparison.  Allows explicit or comparative tests to see
 ;;      if two tags are the same.
 
 ;;; Code:
@@ -107,7 +107,7 @@ A variable, or named storage for data.
 @item include
 Statement that represents a file from which more tags can be found.
 @item package
-Statement that declairs this file's package name.
+Statement that declares this file's package name.
 @item code
 Code that has not name or binding to any other symbol, such as in a script.
 @end table
@@ -361,45 +361,6 @@ of different cons cells."
 		(equal (semantic-tag-bounds tag1)
 		       (semantic-tag-bounds tag2))))))
 
-(defun semantic-tag-similar-p (tag1 tag2 &rest ignorable-attributes)
-  "Test to see if TAG1 and TAG2 are similar.
-Two tags are similar if their name, datatype, and various attributes
-are the same.
-
-Similar tags that have sub-tags such as arg lists or type members,
-are similar w/out checking the sub-list of tags.
-Optional argument IGNORABLE-ATTRIBUTES are attributes to ignore while comparing similarity."
-  (let* ((A1 (and (equal (semantic-tag-name tag1) (semantic-tag-name tag2))
-		  (semantic-tag-of-class-p tag1 (semantic-tag-class tag2))
-		  (semantic-tag-of-type-p tag1 (semantic-tag-type tag2))))
-	 (attr1 (semantic-tag-attributes tag1))
-	 (A2 (= (length attr1) (length (semantic-tag-attributes tag2))))
-	 (A3 t)
-	 )
-    (when (and (not A2) ignorable-attributes)
-      (setq A2 t))
-    (while (and A2 attr1 A3)
-      (let ((a (car attr1))
-	    (v (car (cdr attr1))))
-
-	(cond ((or (eq a :type) ;; already tested above.
-		   (memq a ignorable-attributes)) ;; Ignore them...
-	       nil)
-
-	      ;; Don't test sublists of tags
-	      ((and (listp v) (semantic-tag-p (car v)))
-	       nil)
-
-	      ;; The attributes are not the same?
-	      ((not (equal v (semantic-tag-get-attribute tag2 a)))
-	       (setq A3 nil))
-	      (t
-	       nil))
-	)
-      (setq attr1 (cdr (cdr attr1))))
-
-    (and A1 A2 A3)
-    ))
 
 (defun semantic-tag-similar-with-subtags-p (tag1 tag2 &rest ignorable-attributes)
   "Test to see if TAG1 and TAG2 are similar.
@@ -407,28 +368,8 @@ Uses `semantic-tag-similar-p' but also recurses through sub-tags, such
 as argument lists and type members.
 Optional argument IGNORABLE-ATTRIBUTES is passed down to
 `semantic-tag-similar-p'."
-  (let ((C1 (semantic-tag-components tag1))
-	(C2 (semantic-tag-components tag2))
-	)
-    (if (or (/= (length C1) (length C2))
-	    (not (semantic-tag-similar-p tag1 tag2 ignorable-attributes))
-	    )
-	;; Basic test fails.
-	nil
-      ;; Else, check component lists.
-      (catch 'component-dissimilar
-	(while C1
-
-	  (if (not (semantic-tag-similar-with-subtags-p
-		    (car C1) (car C2) ignorable-attributes))
-	      (throw 'component-dissimilar nil))
-
-	  (setq C1 (cdr C1))
-	  (setq C2 (cdr C2))
-	  )
-	;; If we made it this far, we are ok.
-	t) )))
-
+  ;; DEPRECATE THIS.
+  (semantic-tag-similar-p tag1 tag2 ignorable-attributes))
 
 (defun semantic-tag-of-type-p (tag type)
   "Compare TAG's type against TYPE.  Non nil if equivalent.
@@ -527,8 +468,9 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
   "Create a semantic tag of class 'variable.
 NAME is the name of this variable.
 TYPE is a string or semantic tag representing the type of this variable.
-Optional DEFAULT-VALUE is a string representing the default value of this variable.
-ATTRIBUTES is a list of additional attributes belonging to this tag."
+Optional DEFAULT-VALUE is a string representing the default value of this
+variable.  ATTRIBUTES is a list of additional attributes belonging to this
+tag."
   (apply 'semantic-tag name 'variable
          :type type
          :default-value default-value
@@ -630,7 +572,7 @@ copied tag.
 If optional argument KEEP-FILE is non-nil, and TAG was linked to a
 buffer, the originating buffer file name is kept in the `:filename'
 property of the copied tag.
-If KEEP-FILE is a string, and the orginating buffer is NOT available,
+If KEEP-FILE is a string, and the originating buffer is NOT available,
 then KEEP-FILE is stored on the `:filename' property.
 This runs the tag hook `unlink-copy-hook`."
   ;; Right now, TAG is a list.
@@ -685,23 +627,29 @@ This function is for internal use only."
 ;;
 (defun semantic-tag-deep-copy-one-tag (tag &optional filter)
   "Make a deep copy of TAG, applying FILTER to each child-tag.
-Properties and overlay info are not copied.
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+No properties are copied except for :filename.
+Overlay will be a vector.
+FILTER takes TAG as an argument, and should returns a `semantic-tag'.
 It is safe for FILTER to modify the input tag and return it."
   (when (not filter) (setq filter 'identity))
   (when (not (semantic-tag-p tag))
     (signal 'wrong-type-argument (list tag 'semantic-tag-p)))
-  (funcall filter (list (semantic-tag-name tag)
-                        (semantic-tag-class tag)
-                        (semantic--tag-deep-copy-attributes
-			 (semantic-tag-attributes tag) filter)
-                        nil
-                        nil)))
+  (let ((ol (semantic-tag-overlay tag))
+	(fn (semantic-tag-file-name tag)))
+    (funcall filter (list (semantic-tag-name tag)
+			  (semantic-tag-class tag)
+			  (semantic--tag-deep-copy-attributes
+			   (semantic-tag-attributes tag) filter)
+			  ;; Only copy the filename property
+			  (when fn (list :filename fn))
+			  ;; Only setup a vector if we had an overlay.
+			  (when ol (vector (semantic-tag-start tag) (semantic-tag-end tag)))
+			  ))))
 
 (defun semantic--tag-deep-copy-attributes (attrs &optional filter)
   "Make a deep copy of ATTRS, applying FILTER to each child-tag.
 
-It is safe to modify ATTR, and return a permutaion of that list.
+It is safe to modify ATTR, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -714,7 +662,7 @@ It is safe for FILTER to modify the input tag and return it."
 (defun semantic--tag-deep-copy-value (value &optional filter)
   "Make a deep copy of VALUE, applying FILTER to each child-tag.
 
-It is safe to  modify VALUE, and return a permutaion of that list.
+It is safe to modify VALUE, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -733,7 +681,7 @@ It is safe for FILTER to modify the input tag and return it."
 (defun semantic--tag-deep-copy-tag-list (tags &optional filter)
   "Make a deep copy of TAGS, applying FILTER to each child-tag.
 
-It is safe to modify the TAGS list, and return a permutaion of that list.
+It is safe to modify the TAGS list, and return a permutation of that list.
 
 FILTER takes TAG as an argument, and should returns a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
@@ -874,7 +822,7 @@ That is the value of the `:throws' attribute."
   "Return the parent of the function that TAG describes.
 That is the value of the `:parent' attribute.
 A function has a parent if it is a method of a class, and if the
-function does not appear in body of it's parent class."
+function does not appear in body of its parent class."
   (semantic-tag-named-parent tag))
 
 (defsubst semantic-tag-function-destructor-p (tag)
@@ -994,7 +942,7 @@ Ignoring this step will prevent several features from working correctly."
   "Return the list of top level components belonging to TAG.
 Children are any sub-tags which contain overlays.
 The default action collects regular components of TAG, in addition
-to any components beloning to an anonymous type."
+to any components belonging to an anonymous type."
   (let ((explicit-children (semantic-tag-components tag))
 	(type (semantic-tag-type tag))
 	(anon-type-children nil)
@@ -1134,7 +1082,7 @@ This function is for internal use only."
 (defsubst semantic--tag-link-list-to-buffer (tags)
   "Convert TAGS from using an overlay proxy to using an overlay.
 This function is for internal use only."
-  (mapcar 'semantic--tag-link-to-buffer tags))
+  (mapc 'semantic--tag-link-to-buffer tags))
 
 (defun semantic--tag-link-to-buffer (tag)
   "Convert TAG from using an overlay proxy to using an overlay.

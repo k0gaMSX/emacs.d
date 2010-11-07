@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cedet-m3.el,v 1.2 2010/03/18 23:31:35 zappo Exp $
+;; X-RCS: $Id: cedet-m3.el,v 1.10 2010-07-27 00:18:24 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -45,8 +45,6 @@
     (car (car (cdr event))))
   )
 
-
-
 (defcustom global-cedet-m3-minor-mode nil
   "Non-nil in buffers with Semantic Recoder macro keybindings."
   :group 'cedet-m3
@@ -74,6 +72,7 @@
 (defvar cedet-m3-mode-map
   (let ((km (make-sparse-keymap)))
     (define-key km cedet-m3-prefix-key 'cedet-m3-menu)
+    ;;(define-key km "\C-x," 'cedet-m3-menu-kbd)
     km)
   "Keymap for cedet-m3 minor mode.")
 
@@ -141,60 +140,99 @@ Argument EVENT describes the event that caused this function to be called."
       (select-window startwin))
     ))
 
+(defun cedet-m3-menu-kbd ()
+  "Popup a menu at the cursor to help a user figure out what is at that point."
+  (interactive)
+  (cedet-m3-create-menu)
+  (sit-for 0)
+  (semantic-popup-menu cedet-m3-minor-menu (senator-completion-menu-point-as-event))
+  )
+
 ;;; WHATISIT?
 ;;
 (defun cedet-m3-whatisit ()
   "Try and explain what this is.
 The what is under the cursor."
   (interactive)
-  (let* ((ctxt (semantic-analyze-current-context))
-	 (pf (when ctxt (oref ctxt prefix)))
-	 (rpf (reverse pf))
-	 )
-    (with-output-to-temp-buffer (help-buffer)
-      (with-current-buffer standard-output
-	(if (not ctxt)
-	    (progn
-	      ;; @TODO - what might we say about that location?
-	      (princ "You have selected some uninteresting location:\n")
-	      (princ "   whitespace, punctuation, comment, or string content.")
-	      )
+  (semanticdb-without-unloaded-file-searches
+      (let* ((ctxt (semantic-analyze-current-context))
+	     (pf (when ctxt (oref ctxt prefix)))
+	     (rpf (reverse pf))
+	     )
+	(with-output-to-temp-buffer (help-buffer)
+	  (with-current-buffer standard-output
+	    (if (not ctxt)
+		(progn
+		  ;; @TODO - what might we say about that location?
+		  (princ "You have selected some uninteresting location:\n")
+		  (princ "   whitespace, punctuation, comment, or string content.")
+		  )
 
-	  ;; Found something
-	  (princ "You have found the ")
-	  (if (stringp (car rpf))
-	      (let ((comp (save-excursion
-			    (set-buffer (oref ctxt :buffer))
-			    (condition-case nil
-				(semantic-analyze-possible-completions ctxt)
-			      (error nil)))))
-		(princ "text ")
-		(princ (car rpf))
+	      ;; Found something
+	      (princ "You have found ")
+	      (cond
+
+	       ;; RAW String - unknown symbol
+	       ((stringp (car rpf))
+		(let ((comp (save-excursion
+			      (set-buffer (oref ctxt :buffer))
+			      (condition-case nil
+				  (semantic-analyze-possible-completions ctxt)
+				(error nil)))))
+		  (princ "the text ")
+		  (princ (car rpf))
+		  (princ "\n\n")
+		  (if (not comp)
+		      (princ "There are no known completions.")
+		    (if (cdr comp)
+			(progn
+			  (princ "There are ")
+			  (prin1 (length comp))
+			  (princ " possible completions:\n"))
+		      (princ "There is one possible completion:\n"))
+
+		    (dolist (C comp)
+		      (princ "   ")
+		      (princ (semantic-format-tag-summarize C))
+		      (princ "\n"))
+		    )))
+
+	       ;; A Semantic Tag
+	       ((semantic-tag-p (car rpf))
+		(princ "the symbol:\n  ")
+		(princ (semantic-format-tag-summarize (car rpf)
+						      (car (cdr rpf))
+						      t))
 		(princ "\n\n")
-		(if (not comp)
-		    (princ "There are no known completions.")
-		  (princ "There are ")
-		  (prin1 (length comp))
-		  (princ " possible completions:\n")
-		  (dolist (C comp)
-		    (princ "   ")
-		    (princ C)
-		    (princ "\n"))
-		  ))
-	    ;; The last symbol is a tag, so get funky with it.
-	    (princ "symbol:\n  ")
-	    (princ (semantic-format-tag-prototype (car rpf)
-						  (car (cdr rpf))
-						  t))
-	    (princ "\n\n")
 
-	    ;; Filename
-	    (when (semantic-tag-file-name (car rpf))
-	      (princ "This tag is found in:\n  ")
-	      (princ (semantic-tag-file-name (car rpf)))
-	      (princ "\n\n"))
-	      
-	    ))))))
+		 
+		;; Filename
+		(when (semantic-tag-file-name (car rpf))
+		  (princ "This tag is found in:\n  ")
+		  (princ (semantic-tag-file-name (car rpf)))
+		  (let ((line (semantic-tag-get-attribute (car rpf) :line))
+			(start (when (semantic-tag-with-position-p (car rpf))
+				 (semantic-tag-start (car rpf)))))
+		    (cond (line
+			   (princ "\n  on Line: ")
+			   (princ line))
+			  (start
+			   (princ "\n  at character: ")
+			   (princ start))
+			  ))
+		  (princ "\n\n"))
+	    
+		;; Raw Tag Data
+		(princ "The Raw Tag Data Structure is:\n\n")
+		(prin1 (car rpf))
+		)
+
+	       ;; Something else?
+	       (t
+
+		(princ "absolutely nothing...")
+
+		))))))))
 
 ;;; UTILITIES
 ;;
@@ -212,29 +250,32 @@ ATTRIBUTES are easymenu compatible attributes."
 
 (defun cedet-m3-create-menu ()
   "Create a menu custom to this location."
-  (let ((baseitems (list
-		    (cedet-m3-menu-item
-		     "What is this?"
-		     'cedet-m3-whatisit
-		     :active t)))
-	(context (cedet-m3-context-items))
-	(refs (cedet-m3-ref-items))
-	(recode (cedet-m3-srecode-items))
-	(project (cedet-m3-ede-items))
-	(easy nil)
-	)
-    (setq easy (cons "CEDET"
-		     (append baseitems
-			     context
-			     refs
-			     recode
-			     project)))
+  (semanticdb-without-unloaded-file-searches
+      (let ((baseitems (list
+			(cedet-m3-menu-item
+			 "What is this?"
+			 'cedet-m3-whatisit
+			 :active t)))
+	    (context (cedet-m3-context-items))
+	    (refs (cedet-m3-ref-items))
+	    (recode (cedet-m3-srecode-items))
+	    (project (cedet-m3-ede-items))
+	    (cogre (cedet-m3-cogre-items))
+	    (easy nil)
+	    )
+	(setq easy (cons "CEDET"
+			 (append baseitems
+				 context
+				 refs
+				 recode
+				 cogre
+				 project)))
     
-    (easy-menu-define cedet-m3-minor-menu
-      cedet-m3-hack-map
-      "Cedet-M3 Minor Mode Menu"
-      easy)
-    ))
+	(easy-menu-define cedet-m3-minor-menu
+	  cedet-m3-hack-map
+	  "Cedet-M3 Minor Mode Menu"
+	  easy)
+	)))
 
 (defun cedet-m3-context-items ()
   "Return a list of menu items if the cursor is on some useful code constrct."
@@ -256,7 +297,10 @@ ATTRIBUTES are easymenu compatible attributes."
 					    (cdr (oref ctxt :bounds))))
 
 	;; If there are completions, then add some in.
-	(when (and completions (> (length completions) 1))
+	;; Don't use completions if there is only one, and SYM
+	;; is a tag.
+	(when (and completions (or (> (length completions) 1)
+				   (stringp sym)))
 	  (dolist (T (reverse completions))
 	    (push (cedet-m3-menu-item
 		   (concat "==> " (semantic-format-tag-name T))
@@ -269,7 +313,9 @@ ATTRIBUTES are easymenu compatible attributes."
 
 	  ;; If this symbol is purely local, we can do a mini refactor.
 	  ;; with semantic-symref-rename-local-variable
-	  (when (and (semantic-tag-of-class-p sym 'variable)
+	  (when (and (semantic-tag-p sym)
+		     (semantic-tag-of-class-p sym 'variable)
+		     (semantic-tag-with-position-p sym)
 		     ;; within this tag
 		     (or (> (semantic-tag-start sym) (semantic-tag-start tag))
 			 (< (semantic-tag-end sym) (semantic-tag-end tag)))
@@ -369,24 +415,53 @@ ATTRIBUTES are easymenu compatible attributes."
   "Return a list of menu items based on EDE project stats."
   ;; Only create items if EDE is active.
   (when ede-object
-    ;; If the active item is a PROJECT, provide a project level compile.
-    (if (ede-project-child-p ede-object)
-	(list
-	 (cedet-m3-menu-item
-	  (concat "Compile Project: (" (ede-name ede-object) ")")
-	  'ede-compile-project
-	  :active t
-	  :help "Compile the current project with EDE.")
-	 )
-      ;; Else, we can compile a target.
-      (list
-       (cedet-m3-menu-item
-	(concat "Compile Target: (" (ede-name ede-object) ")")
-	'ede-compile-target
-	:active t
-	:help "Compile the current target with EDE.")
-       )
-      )))
+    (let ((objs (if (eieio-object-p ede-object)
+		    (list ede-object)
+		  ede-object))
+	  (items nil))
+      ;; Do this for every target.
+      (dolist (OBJ objs)
+	;; If the active item is a PROJECT, provide a project level compile.
+	(if (ede-project-child-p OBJ)
+	    (setq items
+		  (cons (cedet-m3-menu-item
+			 (concat "Compile Project: (" (ede-name OBJ) ")")
+			 'ede-compile-project
+			 :active t
+			 :help "Compile the current project with EDE.")
+			items))
+	  ;; Else, we can compile a target.
+	  (setq items
+		(cons (cedet-m3-menu-item
+		       (concat "Compile Target: (" (ede-name OBJ) ")")
+		       `(lambda () (interactive) (project-compile-target ,OBJ))
+		       :active t
+		       :help "Compile the current target with EDE.")
+		      items))))
+      items)))
+
+(defun cedet-m3-cogre-items ()
+  "Return a list of menu items based on COGRE features."
+  (when (locate-library "cogre")
+    (let* ((ctxt (semantic-analyze-current-context))
+	   (pt (if ctxt (reverse (oref ctxt :prefixtypes)) nil))
+	   (items nil)
+	   )
+      (dolist (DT pt)
+	(when (and (semantic-tag-p DT)
+		   (semantic-tag-of-class-p DT 'type)
+		   (semantic-tag-of-type-p DT "class"))
+	  (push
+	   (cedet-m3-menu-item
+	    (concat "Browse UML: (" (semantic-format-tag-name DT) ")")
+	    `(lambda ()
+	       (interactive)
+	       (cogre-uml-quick-class (quote , DT)))
+	    :active t
+	    :help "Browse a UML diagram with COGRE.")
+	   items)
+	  ))
+      items)))
 
 ;; Use the semantic minor mode magic stuff.
 (semantic-add-minor-mode 'cedet-m3-minor-mode

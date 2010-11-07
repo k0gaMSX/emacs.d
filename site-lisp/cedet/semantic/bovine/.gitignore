@@ -5,3 +5,6 @@ semantic-scm-by.el
 semantic-make-by.el
 semantic-erlang-by.el
 semantic-c-by.el
+*~
+*script
+semantic-f90-by.el

@@ -1,10 +1,10 @@
 ;;; semanticdb.el --- Semantic tag database manager
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Eric M. Ludlam
+;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
-;; X-RCS: $Id: semanticdb.el,v 1.138 2009/09/23 01:26:41 zappo Exp $
+;; X-RCS: $Id: semanticdb.el,v 1.142 2010-05-03 01:13:16 zappo Exp $
 
 ;; This file is not part of GNU Emacs.
 
@@ -57,7 +57,7 @@ mechanism.")
 
 (defvar semanticdb-default-find-index-class 'semanticdb-find-search-index
   "The default type of search index to use for a `semanticdb-table's.
-This can be changed to try out new types of search indicies.")
+This can be changed to try out new types of search indices.")
 (make-variable-buffer-local 'semanticdb-default-find=index-class)
 
 
@@ -445,7 +445,8 @@ See the file semantic-scope.el for an example."
   "Get a cache object on TABLE of class DESIRED-CLASS.
 This method will create one if none exists with no init arguments
 other than :table."
-  (assert (child-of-class-p desired-class 'semanticdb-abstract-cache))
+  (assert (child-of-class-p desired-class 'semanticdb-abstract-cache)
+          (error "Invalid SemanticDB cache"))
   (let ((cache (oref table cache))
 	(obj nil))
     (while (and (not obj) cache)
@@ -495,7 +496,8 @@ See the file semantic-scope.el for an example."
   "Get a cache object on DB of class DESIRED-CLASS.
 This method will create one if none exists with no init arguments
 other than :table."
-  (assert (child-of-class-p desired-class 'semanticdb-abstract-db-cache))
+  (assert (child-of-class-p desired-class 'semanticdb-abstract-db-cache)
+          (error "Invalid SemanticDB cache"))
   (let ((cache (oref db cache))
 	(obj nil))
     (while (and (not obj) cache)
@@ -535,10 +537,25 @@ Optional argument FORCE will force a refresh even if the file in question
 is not in a buffer.  Avoid using FORCE for most uses, as an old cache
 may be sufficient for the general case.  Forced updates can be slow.
 This will call `semantic-fetch-tags' if that file is in memory."
-  (when (or (semanticdb-in-buffer-p obj) force)
+  (cond
+   ;;
+   ;; Already in a buffer, just do it.
+   ((semanticdb-in-buffer-p obj)
+    (semanticdb-set-buffer obj)
+    (semantic-fetch-tags))
+   ;;
+   ;; Not in a buffer.  Forcing a load.  
+   (force
+    ;; Patch from Iain Nicol. -- 
+    ;; @TODO: I wonder if there is a way to recycle 
+    ;;        semanticdb-create-table-for-file-not-in-buffer
     (save-excursion
-      (semanticdb-set-buffer obj)
-      (semantic-fetch-tags))))
+      (let ((buff (semantic-find-file-noselect 
+		   (semanticdb-full-filename obj))))
+	(set-buffer buff)
+	(semantic-fetch-tags)
+	;; Kill off the buffer if it didn't exist when we were called.
+	(kill-buffer buff))))))
 
 (defmethod semanticdb-needs-refresh-p ((obj semanticdb-table))
   "Return non-nil of OBJ's tag list is out of date.
@@ -547,8 +564,7 @@ The file associated with OBJ does not need to be in a buffer."
 	 (buff (semanticdb-in-buffer-p obj))
 	 )
     (if buff
-	(save-excursion
-	  (set-buffer buff)
+	(with-current-buffer buff
 	  ;; Use semantic's magic tracker to determine of the buffer is up
 	  ;; to date or not.
 	  (not (semantic-parse-tree-up-to-date-p))
@@ -705,14 +721,14 @@ Uses `semanticdb-persistent-path' to determine the return value."
       nil))
 
 (defvar semanticdb-match-any-mode nil
-  "Non-nil to temporarilly search any major mode for a tag.
+  "Non-nil to temporarily search any major mode for a tag.
 If a particular major mode wants to search any mode, put the
 `semantic-match-any-mode' symbol onto the symbol of that major mode.
 Do not set the value of this variable permanently.")
 
 (defmacro semanticdb-with-match-any-mode (&rest body)
-  "A Semanticdb search occuring withing BODY will search tags in all modes.
-This temporarilly sets `semanticdb-match-any-mode' while executing BODY."
+  "A Semanticdb search occurring withing BODY will search tags in all modes.
+This temporarily sets `semanticdb-match-any-mode' while executing BODY."
   `(let ((semanticdb-match-any-mode t))
      ,@body))
 (put 'semanticdb-with-match-any-mode 'lisp-indent-function 0)
@@ -730,13 +746,13 @@ all files of any type."
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-abstract-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   nil)
 
 (defmethod semanticdb-equivalent-mode ((table semanticdb-table) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
-Equivalent modes are specified by by `semantic-equivalent-major-modes'
+Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
   (save-excursion
     (if buffer (set-buffer buffer))
@@ -760,7 +776,7 @@ local variable."
 (defcustom semanticdb-project-roots nil
   "*List of directories, where each directory is the root of some project.
 All subdirectories of a root project are considered a part of one project.
-Values in this string can be overriden by project management programs
+Values in this string can be overridden by project management programs
 via the `semanticdb-project-root-functions' variable."
   :group 'semanticdb
   :type '(repeat string))
@@ -803,12 +819,14 @@ Always append `semanticdb-project-system-databases' if
     (setq root (run-hook-with-args-until-success
 		'semanticdb-project-root-functions
 		dir))
-    ;; Find roots based on strings
-    (while (and roots (not root))
-      (let ((r (file-truename (car roots))))
-	(if (string-match (concat "^" (regexp-quote r)) dir)
-	    (setq root r)))
-      (setq roots (cdr roots)))
+    (if root
+	(setq root (file-truename root))
+      ;; Else, Find roots based on strings
+      (while roots
+	(let ((r (file-truename (car roots))))
+	  (if (string-match (concat "^" (regexp-quote r)) dir)
+	      (setq root r)))
+	(setq roots (cdr roots))))
 
     ;; If no roots are found, use this directory.
     (unless root (setq root dir))
