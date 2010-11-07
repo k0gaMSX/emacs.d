@@ -8,7 +8,7 @@
 ;TODO: link fill-column and comment init-pos and end-pos
 ;TODO: Document str-fill-spaces-c-comment defun
 ;TODO: meterle acelerador de raton
-;TODO: añadir la pila de buffers
+;TODO: aÃ±adir la pila de buffers
 ;TODO: Modify planner to allow change directory where is saved timeclock file
 ;TODO: Configure ps-printer-name variable
 ;TODO: put local configurations in init-local.el
