@@ -1047,12 +1047,12 @@
 (require 'flyspell)
 
 
-;; (defadvice flyspell-mode
-;;   (after advice-flyspell-check-buffer-on-start activate)
-;;   (flyspell-buffer))
+(defadvice flyspell-mode
+  (after advice-flyspell-check-buffer-on-start activate)
+  (flyspell-buffer))
 
-;; (add-hook 'kill-emacs-hook (lambda nil
-;;                              (ispell-pdict-save)))
+(add-hook 'kill-emacs-hook (lambda nil
+                             (ispell-pdict-save)))
 
 ;; ****************************************************************************
 ;; User defined functions
