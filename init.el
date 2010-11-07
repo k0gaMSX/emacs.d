@@ -441,26 +441,27 @@
 (defun my-c-mode ()
   (doxymacs-mode)
   (setq ac-override-local-map t)
-  (setq yas/fallback-behavior 'call-other-command)
-  (defadvice c-indent-line
-    (before indent-and-forward-tempo activate)
-    (when (my-inside-javadoc-comment)
-      (tempo-forward-mark)))
+  (setq yas/fallback-behavior nil)
+  (local-set-key [tab]
+                 '(lambda nil
+                    (interactive)
+                    (yas/expand)
+                    (c-indent-line-or-region)
+                    (when (my-inside-javadoc-comment)
+                      (tempo-forward-mark))))
+  (local-set-key [C-tab] 'eassist-switch-h-cpp)
   (add-to-list 'ac-omni-completion-sources
                (cons "\\." '(ac-source-semantic)))
   (add-to-list 'ac-omni-completion-sources
                (cons "->" '(ac-source-semantic)))
   (local-set-key [(return )]  'my-javadoc-return)
-  (local-set-key "\C-cc" 'my-c-comment-function)
-  (eldoc-mode)
-  (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
   (setq ac-sources
-        '(ac-source-semantic
-          ac-source-gtags
+        '(ac-source-gtags
+          ac-source-c++-keywords
           ac-source-yasnippet
           ac-source-words-in-buffer))
-  (turn-on-filladapt-mode)            ;This cause problems with space key in
-  (auto-fill-mode t))                 ;lines which begins with /*
+  (turn-on-filladapt-mode)
+  (auto-fill-mode t))
 
 
 (setq-mode-local c-mode
