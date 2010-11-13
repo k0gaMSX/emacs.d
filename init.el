@@ -206,7 +206,7 @@
 (global-set-key [f2] 'ecb-toggle-ecb-windows)
 (global-set-key [f3] '(lambda()
                         (interactive)
-                        (my-winring-jump-to-configuration "ECB")))
+                        (iy/winring-jump-or-create "ECB")))
 
 
 
@@ -548,17 +548,6 @@
 
 
 
-;; ****************************************************************************
-;; layout-restore
-;; ****************************************************************************
-
-
-(require 'layout-restore)
-
-(global-set-key [?\C-c ?l] 'layout-save-current)
-(global-set-key [?\C-c ?\C-l ?\C-l] 'layout-restore)
-(global-set-key [?\C-c ?\C-l ?\C-c] 'layout-delete-current)
-
 
 
 
@@ -579,7 +568,7 @@
 
 (add-hook 'gdb-mode-hook
           '(lambda ()
-             (my-winring-jump-to-configuration "GUD")
+             (iy/winring-jump-or-create "GUD")
              (define-key gud-mode-map [f5] 'gud-step)
              (define-key gud-mode-map [f6] 'gud-next)
              (define-key gud-mode-map [f7] 'gud-finish)
