@@ -575,20 +575,21 @@
 
 
 
-(defun my-goto-file-line (file line)
-  (find-file file)
-  (goto-char (point-min))
-  (forward-line (1- line))
-  (setq my-gdb-line line)
-  (setq my-gdb-file file))
+(defun my-gdb-highline-file-line (file line light)
+  (with-selected-window gdb-source-window
+    (find-file file)
+    (goto-char (point-min))
+    (forward-line (1- line))
+    (setq my-gdb-line line)
+    (setq my-gdb-file file)
+    (if light
+        (highline-highlight-current-line)
+      (highline-unhighlight-current-line))))
 
+(defadvice gdb-reset
+ (after my-gdb-reset activate)
+ (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
 
-(defadvice my-gdb-reset
-  (after gdb-reset activate)
-  (my-goto-file-line my-gdb-file my-gdb-line)
-  (save-buffers-kill-terminal)
-  (highline-unhighlight-current-line)
-  (switch-to-buffer buffer))
 
 
 (add-hook 'gdb-stopped-hooks
@@ -596,16 +597,11 @@
              (let*
                  ((frame (cdr (nth 2 arg)))
                   (line (bindat-get-field frame 'line))
-                  (file (bindat-get-field frame 'fullname))
-                  (buffer (current-buffer)))
+                  (file (bindat-get-field frame 'fullname)))
                (when (and (stringp line) (stringp file))
                  (when (and my-gdb-file my-gdb-line)
-                   (my-goto-file-line my-gdb-file my-gdb-line)
-                   (highline-unhighlight-current-line))
-                 (my-goto-file-line file (string-to-number line))
-                 (highline-highlight-current-line)
-                 (switch-to-buffer buffer)))))
-
+                   (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
+                 (my-gdb-highline-file-line file (string-to-number line) t)))))
 
 
 
