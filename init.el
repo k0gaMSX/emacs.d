@@ -707,43 +707,34 @@
 
 (require 'winring) ;Must be loaded after ecb-winman-winring-enable-support call
 (winring-initialize)
-(winring-rename-configuration "GUD")
-(winring-new-configuration nil)
-(winring-rename-configuration "ECB")
 
-
-
-
-(defun my-winring-jump-to-configuration (var)
-  "Go to the named window configuration."
-  (let* ((ring (winring-get-ring))
-         (index (my-winring-complete-name var))
-         item)
-    ;; if the current configuration was chosen, winring-complete-name
-    ;; returns -1
-    (when (<= 0 index)
-      (setq item (ring-remove ring index))
-      (winring-save-current-configuration)
-      (winring-restore-configuration item))))
-
-
-
-
-(defun my-winring-complete-name (var)
+(defun iy/winring-jump-or-create (&optional name)
+  "Jump to or create configuration by name"
+  (interactive)
   (let* ((ring (winring-get-ring))
          (n (1- (ring-length ring)))
          (current (winring-name-of-current))
-         (table (list (cons current -1))))
-    ;; populate the completion table
+         (lst (list (cons current -1)))
+         index item)
     (while (<= 0 n)
-      (setq table (cons (cons (winring-name-of (ring-ref ring n)) n) table)
-            n (1- n)))
-    (setq name var)
-    (if (string-equal name "")
-        (setq name current))
-    (cdr (assoc name table))))
-
-
+      (push (cons (winring-name-of (ring-ref ring n)) n) lst)
+      (setq n (1- n)))
+    (setq name
+          (or name
+              (completing-read
+               (format "Window configuration name (%s): " current)
+               lst nil 'confirm nil 'winring-name-history current)))
+    (setq index (cdr (assoc name lst)))
+    (if (eq nil index)
+        (progn
+          (winring-save-current-configuration)
+          (delete-other-windows)
+          (switch-to-buffer winring-new-config-buffer-name)
+          (winring-set-name name))
+      (when (<= 0 index)
+        (setq item (ring-remove ring index))
+        (winring-save-current-configuration)
+        (winring-restore-configuration item)))))
 
 
 ;;*****************************************************************************
