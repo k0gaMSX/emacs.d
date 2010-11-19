@@ -803,6 +803,18 @@
              (get-buffer "*compilation*"))))
          (cons msg code)))
 
+;;Interpretate ansi sequences
+
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region (point-min) (point-max))
+  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+
+
+;;*****************************************************************************
 
 
 
@@ -821,6 +833,7 @@
 ;(turn-on-auto-fill)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
 (setq x-select-enable-clipboard t)
 
 
