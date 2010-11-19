@@ -1056,8 +1056,11 @@
 (require 'psvn)
 (require 'vc)
 (require 'flyspell)
+(require 'git)
+(require 'magit)
 
-
+;TODO: implement vc-status for all scm
+(global-set-key '[ (control x ) (v) (t) ] 'magit-status)
 (add-hook 'log-edit-mode-hook (lambda nil
                                 (flyspell-mode 1)))
 
