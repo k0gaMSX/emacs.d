@@ -411,7 +411,7 @@
                              yas/completing-prompt))
 
 ;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
-;(global-set-key "\M-/" 'ac-start)
+(global-set-key "\M-/" 'ac-start)
 (define-key ac-complete-mode-map "\C-n" 'ac-next)
 (define-key ac-complete-mode-map "\C-p" 'ac-previous)
 (define-key ac-complete-mode-map [(return)] 'ac-stop)
@@ -427,41 +427,31 @@
 (require 'doxymacs)
 (require 'filladapt)
 (require 'develock)
-
-(require 'eassist)
-(setq eassist-header-switches
-      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
-        ("pc" "h" "hpp")
-        ("cpp" "h" "hpp") ("c" "h") ("C" "H")
-        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
-        ("pc h")))
-
-
+;; (require 'google-c-style)
 
 (defun my-c-mode ()
   (doxymacs-mode)
   (setq ac-override-local-map t)
-  (setq yas/fallback-behavior nil)
-  (local-set-key [tab]
-                 '(lambda nil
-                    (interactive)
-                    (yas/expand)
-                    (c-indent-line-or-region)
+  (setq yas/fallback-behavior 'call-other-command)
+  (defadvice c-indent-line
+    (before indent-and-forward-tempo activate)
                     (when (my-inside-javadoc-comment)
-                      (tempo-forward-mark))))
-  (local-set-key [C-tab] 'eassist-switch-h-cpp)
+      (tempo-forward-mark)))
   (add-to-list 'ac-omni-completion-sources
                (cons "\\." '(ac-source-semantic)))
   (add-to-list 'ac-omni-completion-sources
                (cons "->" '(ac-source-semantic)))
   (local-set-key [(return )]  'my-javadoc-return)
+  (local-set-key "\C-cc" 'my-c-comment-function)
+  (eldoc-mode)
+  (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
   (setq ac-sources
-        '(ac-source-gtags
-          ac-source-c++-keywords
+        '(ac-source-semantic
+          ac-source-gtags
           ac-source-yasnippet
           ac-source-words-in-buffer))
-  (turn-on-filladapt-mode)
-  (auto-fill-mode t))
+  (turn-on-filladapt-mode)            ;This cause problems with space key in
+  (auto-fill-mode t))                 ;lines which begins with /*
 
 
 (setq-mode-local c-mode
