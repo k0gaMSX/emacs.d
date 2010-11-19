@@ -283,9 +283,12 @@
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
 (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
-(global-set-key [(control meta <)] 'semantic-mrub-switch-tags)
-(global-set-key [(control meta return)] 'complete-tag)
+(global-set-key [(control  <)] 'semantic-ia-fast-jump)
+(global-set-key [(control  >)] 'semantic-mrub-switch-tags)
+(global-set-key [(control  return)] 'complete-tag)
 
+(require 'ede)
+(global-ede-mode 1)
 
 
 
@@ -1204,6 +1207,26 @@
                                        (frame-char-height)))))))
 
 (set-frame-size-according-to-resolution)
+
+
+
+
+
+
+;;******************************************************************************
+;; It is necessary put this after load the rest of things
+;;******************************************************************************
+
+(global-set-key [(C-down-mouse-1)] 'semantic-ia-fast-mouse-jump)
+
+
+
+
+
+
+
+
+
 
 ;;*****************************************************************************
 ;; Local configuration
