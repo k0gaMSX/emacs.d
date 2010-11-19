@@ -1,7 +1,6 @@
 ;	$Id$
 
 ;TODO: Put english dictionary in programming modes
-;TODO: erase C-v Custom and search other for M-v
 ;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
 ;      windows  is selected  I want  the ECB  windos stay  selected  and not
 ;      changes to the source windows
@@ -11,8 +10,35 @@
 ;TODO: añadir la pila de buffers
 ;TODO: Modify planner to allow change directory where is saved timeclock file
 ;TODO: Configure ps-printer-name variable
-;TODO: put local configurations in init-local.el
 ;TODO: Put highlight-80+ & highline into mouse  menu
+;TODO: Solve problems with comments in C modes
+;TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
+
+
+
+(setq warning-suppress-types nil)       ;Workaround due to 23.2 bug
+
+;;******************************************************************************
+;; Open my init.el
+;;******************************************************************************
+
+
+(global-set-key "\C-ci" '(lambda nil
+                           (interactive)
+                           (find-file "~/.emacs.d/init.el")))
+
+
+
+
+
+;;*****************************************************************************
+;; Local configuration
+;;*****************************************************************************
+
+(when (file-exists-p "~/.emacs.d/local-pre.el")
+  (load-file "~/.emacs.d/local-pre.el"))
+
+;;*****************************************************************************
 
 (defvar time-format "%Y-%02m-%02d %02H:%02M:%02S"
   "Variable which store the time format string")
@@ -25,7 +51,7 @@
     (normal-top-level-add-subdirs-to-load-path)))
 
 (add-subdirs-to-load-path "~/.emacs.d/site-lisp")
-(load-file "~/.emacs.d/site-lisp/cedet/common/cedet.elc")
+(load-file (concat cedet-home "/common/cedet.elc"))
 
 
 (require 'setup-keys)                   ;Aditional keys
@@ -1171,3 +1197,10 @@
                                        (frame-char-height)))))))
 
 (set-frame-size-according-to-resolution)
+
+;;*****************************************************************************
+;; Local configuration
+;;*****************************************************************************
+
+(when (file-exists-p "~/.emacs.d/local-post.el")
+  (load-file "~/.emacs.d/local-post.el"))
