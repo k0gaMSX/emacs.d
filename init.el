@@ -480,6 +480,14 @@
          '(("\\.pc$" . c-mode))))
 
 
+(require 'eassist)
+(setq eassist-header-switches
+      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
+        ("cpp" "h" "hpp") ("c" "h") ("C" "H")
+        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
+        ("pc h")))
+
+
 
 
 (defun fill-spaces-c-comment (&optional init-pos end-pos)
