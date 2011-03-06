@@ -51,6 +51,7 @@
     (normal-top-level-add-subdirs-to-load-path)))
 
 (add-subdirs-to-load-path "~/.emacs.d/site-lisp")
+(add-subdirs-to-load-path "~/.emacs.d/elpa")
 (load-file (concat cedet-home "/common/cedet.elc"))
 
 
@@ -1185,6 +1186,14 @@
 
 
 
+;;*****************************************************************************
+;; ELPA
+;;*****************************************************************************
+
+(setq package-archives
+      '(("ELPA" . "http://tromey.com/elpa/")
+        ("gnu" . "http://elpa.gnu.org/packages/")
+        ("SC"  . "http://joseito.republika.pl/sunrise-commander/")))
 
 
 ;;*****************************************************************************
