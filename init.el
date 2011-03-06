@@ -533,15 +533,6 @@
 
 
 
-(defun fill-spaces-c-comment (&optional init-pos end-pos)
-  "Fill with spaces the line until fill-column and after put \"*/\""
-  (interactive)
-  (when (not init-pos) (setq init-pos (current-column)))
-  (when (not end-pos) (setq end-pos fill-column))
-  (insert-char ?  (- end-pos init-pos 2))
-  (insert "*/"))
-
-
 
 (defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
   "Return a string which fill right part of the C comment"
