@@ -328,16 +328,9 @@
   (set-buffer-file-coding-system 'iso-latin-1-dos t))
 
 
-
-
-(defun my-delete-trailing-whitespace ()
-  "Delete all trailing white spaces"
-  (interactive)
-  (delete-trailing-whitespace))
-
-(add-hook 'write-file-functions 'my-delete-trailing-whitespace)
-(add-hook 'write-file-functions 'time-stamp)
-(setq default-buffer-file-coding-system 'iso-latin-1-unix)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(add-hook 'before-save-hook 'time-stamp)
+(setq buffer-file-coding-system 'iso-latin-1-unix)
 
 (global-set-key "\C-\M-f" 'find-file-at-point)
 
