@@ -458,10 +458,24 @@
 (require 'develock)
 ;; (require 'google-c-style)
 
+
+(defun linux-c-mode ()
+  "C mode with adjusted defaults for use with the Linux kernel."
+  (interactive)
+  (c-mode)
+  (c-set-style "linux")
+  (develock-mode -1)
+  (setq c-basic-offset 8))
+
+(setq auto-mode-alist (cons '("/usr/src/linux.*/.*\\.[ch]$" . linux-c-mode)
+                       auto-mode-alist))
+
+
 (defun my-c-mode ()
   (doxymacs-mode)
   (setq ac-override-local-map t)
   (setq yas/fallback-behavior 'call-other-command)
+  (c-set-style "k&r")
   (defadvice c-indent-line
     (before indent-and-forward-tempo activate)
                     (when (my-inside-javadoc-comment)
