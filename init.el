@@ -193,6 +193,7 @@
  '(semanticdb-default-save-directory "~/.emacs.d/cache")
  '(semanticdb-default-system-save-directory "~/.emacs.d/cache")
  '(shell-file-name "bash")
+ '(sr-popviewer-mode nil)
  '(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/srecode/templates/")))
  '(srecode-map-save-file "~/.emacs.d/cache/srecode-map")
  '(time-stamp-format time-format)
@@ -1110,23 +1111,10 @@
 (require 'sunrise-commander)
 (require 'sunrise-x-buttons)            ;only necessary if you want the  buttons
 (require 'sunrise-x-loop)         ;allow execute in background using C-u prefix
-(sunrise-mc-keys)                           ;activate MC keys in sunrise-mode
 
 (global-set-key '[(control c) (x)] 'sunrise)
 (global-set-key '[(control c) (X)] 'sunrise-cd)
 
-(when (not (or (eq system-type 'windows-nt) ;Not change it in windows
-               (eq system-type 'cygwin)))
-  (progn
-   (sr-rainbow sr-gorw-dir-face            ;Mark directories
-               (:background "misty rose"
-                            :foreground "blue1"
-                            :bold t)
-               "^..\\(d....\\(...\\)?w..*$\\)")
-
-   (sr-rainbow sr-gorw-face                ;Mark files with bad rights
-               (:background "misty rose")
-               "^..\\(-....\\(...\\)?w..*$\\)")))
 
 
 ;;****************************************************************************
