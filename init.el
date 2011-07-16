@@ -304,19 +304,6 @@
 (ido-mode t)
 (icomplete-mode t)
 
-;convert a buffer from dos ^M end of lines to unix end of lines
-(defun dos2unix ()
-  (interactive)
-    (goto-char (point-min))
-      (while (search-forward "\r" nil t) (replace-match "")))
-
-;vice versa
-(defun unix2dos ()
-  (interactive)
-    (goto-char (point-min))
-      (while (search-forward "\n" nil t) (replace-match "\r\n")))
-
-
 
 (defun unix-file ()
   "Change the current buffer to Latin 1 with Unix line-ends."
