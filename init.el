@@ -1,18 +1,18 @@
-;	$Id$
+;;	$Id$
 
-;TODO: Put english dictionary in programming modes
-;TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
-;      windows  is selected  I want  the ECB  windos stay  selected  and not
-;      changes to the source windows
-;TODO: link fill-column and comment init-pos and end-pos
-;TODO: Document str-fill-spaces-c-comment defun
-;TODO: meterle acelerador de raton
-;TODO: añadir la pila de buffers
-;TODO: Modify planner to allow change directory where is saved timeclock file
-;TODO: Configure ps-printer-name variable
-;TODO: Put highlight-80+ & highline into mouse  menu
-;TODO: Solve problems with comments in C modes
-;TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
+;; TODO: Put english dictionary in programming modes
+;; TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
+;;      windows  is selected  I want  the ECB  windos stay  selected  and not
+;;      changes to the source windows
+;; TODO: link fill-column and comment init-pos and end-pos
+;; TODO: Document str-fill-spaces-c-comment defun
+;; TODO: meterle acelerador de raton
+;; TODO: añadir la pila de buffers
+;; TODO: Modify planner to allow change directory where is saved timeclock file
+;; TODO: Configure ps-printer-name variable
+;; TODO: Put highlight-80+ & highline into mouse  menu
+;; TODO: Solve problems with comments in C modes
+;; TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
 
 
 
@@ -60,50 +60,50 @@
 
 
 (defconst my-doxymacs-JavaDoc-function-comment-template
- '((let ((next-func (doxymacs-find-next-func)))
-     (if next-func
-         (list
-          'l
-          "/** " '> 'n
-          " * " (doxymacs-doxygen-command-char) "author "
-          (user-full-name) '> 'n
-          " * " (doxymacs-doxygen-command-char) "date   "
-          (format-time-string time-format) '> 'n
-          " * " (doxymacs-doxygen-command-char) "brief  " 'p '> 'n
-          " * " (doxymacs-doxygen-command-char) "details  " 'p '> 'n
-          " * " '> 'n
-          (doxymacs-parm-tempo-element (cdr (assoc 'args next-func)))
-          (unless (string-match
-                   (regexp-quote (cdr (assoc 'return next-func)))
-                   doxymacs-void-types)
-            '(l " * " > n " * " (doxymacs-doxygen-command-char)
-                "return " (p "Returns:  ") > n))
-          " */" '>)
-       (progn
-         (error "Can't find next function declaration.")
-         nil))))
- "Customized JavaDoc-style template for function documentation.")
+  '((let ((next-func (doxymacs-find-next-func)))
+      (if next-func
+          (list
+           'l
+           "/** " '> 'n
+           " * " (doxymacs-doxygen-command-char) "author "
+           (user-full-name) '> 'n
+           " * " (doxymacs-doxygen-command-char) "date   "
+           (format-time-string time-format) '> 'n
+           " * " (doxymacs-doxygen-command-char) "brief  " 'p '> 'n
+           " * " (doxymacs-doxygen-command-char) "details  " 'p '> 'n
+           " * " '> 'n
+           (doxymacs-parm-tempo-element (cdr (assoc 'args next-func)))
+           (unless (string-match
+                    (regexp-quote (cdr (assoc 'return next-func)))
+                    doxymacs-void-types)
+             '(l " * " > n " * " (doxymacs-doxygen-command-char)
+                 "return " (p "Returns:  ") > n))
+           " */" '>)
+        (progn
+          (error "Can't find next function declaration.")
+          nil))))
+  "Customized JavaDoc-style template for function documentation.")
 
 
 
 
 (defconst my-doxymacs-JavaDoc-file-comment-template
- '("/**" > n
-   " * " (doxymacs-doxygen-command-char) "file   "
-   (if (buffer-file-name)
-       (file-name-nondirectory (buffer-file-name))
-     "") > n
-   " * " (doxymacs-doxygen-command-char) "author "
-   (user-full-name) > n
-   " * " (doxymacs-doxygen-command-char) "date   "
-   (format-time-string time-format) > n
-   " * " > n
-   " * " (doxymacs-doxygen-command-char) "brief  "
-   (p "Brief description of this file: ") > n
-   " * " > n
-   " * " p > n
-   " */" > n)
- "Default JavaDoc-style template for file documentation.")
+  '("/**" > n
+    " * " (doxymacs-doxygen-command-char) "file   "
+    (if (buffer-file-name)
+        (file-name-nondirectory (buffer-file-name))
+      "") > n
+      " * " (doxymacs-doxygen-command-char) "author "
+      (user-full-name) > n
+      " * " (doxymacs-doxygen-command-char) "date   "
+      (format-time-string time-format) > n
+      " * " > n
+      " * " (doxymacs-doxygen-command-char) "brief  "
+      (p "Brief description of this file: ") > n
+      " * " > n
+      " * " p > n
+      " */" > n)
+  "Default JavaDoc-style template for file documentation.")
 
 
 
@@ -114,10 +114,10 @@
 
 
 (custom-set-variables
-  ;; custom-set-variables was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(ac-auto-start 3)
  '(ac-dwim t)
  '(ac-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode cc-mode c++-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode js2-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode asm-mode)))
@@ -212,10 +212,10 @@
  '(yas/root-directory (quote ("~/.emacs.d/yasnippets")) nil (yasnippet))
  '(yas/triggers-in-field t))
 (custom-set-faces
-  ;; custom-set-faces was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Anonymous Pro"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(fringe ((((class color) (background light)) (:background "gray75"))))
@@ -272,7 +272,7 @@
 
 (which-function-mode t)
 
-;Customization of srecode. I will back over srecode some day
+;;Customization of srecode. I will back over srecode some day
 ;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
 ;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
 ;; "~/.emacs.d/srecode/")))
@@ -334,10 +334,10 @@
 
 (defun make-auto-save-file-name ()
   (concat autosave-dir
-   (if buffer-file-name
-      (concat "#" (file-name-nondirectory buffer-file-name) "#")
-    (expand-file-name
-     (concat "#%" (buffer-name) "#")))))
+          (if buffer-file-name
+              (concat "#" (file-name-nondirectory buffer-file-name) "#")
+            (expand-file-name
+             (concat "#%" (buffer-name) "#")))))
 
 (require 'highline)
 (require 'tramp)
@@ -345,7 +345,7 @@
                              (highline-local-mode t)))
 
 ;; ****************************************************************************
-; doxymacs
+;; doxymacs
 ;; ****************************************************************************
 
 
@@ -385,9 +385,9 @@
 
 
 (defun my-doxymacs-font-lock-hook ()
-   (if (or (eq major-mode 'c-mode)
-           (eq major-mode 'c++-mode))
-       (doxymacs-font-lock)))
+  (if (or (eq major-mode 'c-mode)
+          (eq major-mode 'c++-mode))
+      (doxymacs-font-lock)))
 
 (add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
 
@@ -417,7 +417,7 @@
                              yas/ido-prompt
                              yas/completing-prompt))
 
-;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
+;;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
 (global-set-key "\M-/" 'ac-start)
 (define-key ac-complete-mode-map "\C-n" 'ac-next)
 (define-key ac-complete-mode-map "\C-p" 'ac-previous)
@@ -446,7 +446,7 @@
   (setq c-basic-offset 8))
 
 (setq auto-mode-alist (cons '("/usr/src/linux.*/.*\\.[ch]$" . linux-c-mode)
-                       auto-mode-alist))
+                            auto-mode-alist))
 
 
 (defun my-c-mode ()
@@ -456,7 +456,7 @@
   (c-set-style "k&r")
   (defadvice c-indent-line
     (before indent-and-forward-tempo activate)
-                    (when (my-inside-javadoc-comment)
+    (when (my-inside-javadoc-comment)
       (tempo-forward-mark)))
   (add-to-list 'ac-omni-completion-sources
                (cons "\\." '(ac-source-semantic)))
@@ -485,20 +485,20 @@
 
 
 ;;;(srecode-minor-mode t)
-; if you want to enable support for gnu global -> CRASH!!!!
+;; if you want to enable support for gnu global -> CRASH!!!!
 ;; (semanticdb-enable-gnu-global-databases 'c-mode)
 ;; (semanticdb-enable-gnu-global-databases 'c++-mode)
-;  if you want to enable support for exuberant ctags <- Problems
+;;  if you want to enable support for exuberant ctags <- Problems
 ;; (semanticdb-enable-exuberent-ctags 'c-mode)
 ;; (semanticdb-enable-exuberent-ctags 'c++-mode)
 
-;(semanticdb-load-ebrowse-caches
+;;(semanticdb-load-ebrowse-caches
 
 (add-hook 'c-mode-hook 'my-c-mode)
 (add-hook 'c++-mode-hook 'my-c-mode)
 (setq auto-mode-alist
-       (append auto-mode-alist
-         '(("\\.pc$" . c-mode))))
+      (append auto-mode-alist
+              '(("\\.pc$" . c-mode))))
 
 
 (require 'eassist)
@@ -596,8 +596,8 @@
       (highline-unhighlight-current-line))))
 
 (defadvice gdb-reset
- (after my-gdb-reset activate)
- (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
+  (after my-gdb-reset activate)
+  (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
 
 
 
@@ -665,14 +665,14 @@
 
 
 (add-hook 'emacs-lisp-mode-hook
-             (lambda ()
-               (local-set-key [(return ) ] 'newline-and-indent)
-               (auto-fill-mode t)
-               (setq ac-sources
-                     '(ac-source-yasnippet
-                       ac-source-abbrev
-                       ac-source-words-in-buffer
-                       ac-source-symbols))))
+          (lambda ()
+            (local-set-key [(return ) ] 'newline-and-indent)
+            (auto-fill-mode t)
+            (setq ac-sources
+                  '(ac-source-yasnippet
+                    ac-source-abbrev
+                    ac-source-words-in-buffer
+                    ac-source-symbols))))
 
 
 
@@ -760,7 +760,7 @@
 
 ;; Close the compilation window if  there was no error at all.
 (setq compilation-exit-message-function
-     '(lambda (status code msg)
+      '(lambda (status code msg)
          (when (and (eq status 'exit) (zerop code))
            (bury-buffer)        ;; then bury the *compilation* buffer,
            (delete-window      ;; so that C-x b doesn't go there and delete
@@ -789,13 +789,13 @@
 (require 'w3m-load)
 (require 'avoid)
 (mouse-avoidance-mode 'animate)
-;(require 'tabbar)
-;(tabbar-mode t)
-;(require 'zenburn)
-;(color-theme-classic)
-;(zenburn)
+;;(require 'tabbar)
+;;(tabbar-mode t)
+;;(require 'zenburn)
+;;(color-theme-classic)
+;;(zenburn)
 (server-start)
-;(turn-on-auto-fill)
+;;(turn-on-auto-fill)
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
@@ -812,23 +812,23 @@
 ;; ****************************************************************************
 
 (global-set-key [(shift f1)] '(lambda ()
-                                  (interactive)
-                                  (point-to-register 1)))
+                                (interactive)
+                                (point-to-register 1)))
 
 
 (global-set-key [(shift f2)] '(lambda ()
-                                  (interactive)
-                                  (point-to-register 2)))
+                                (interactive)
+                                (point-to-register 2)))
 
 
 (global-set-key [(shift f3)] '(lambda ()
-                                  (interactive)
-                                  (point-to-register 3)))
+                                (interactive)
+                                (point-to-register 3)))
 
 
 (global-set-key [(shift f4)] '(lambda ()
-                                  (interactive)
-                                  (point-to-register 4)))
+                                (interactive)
+                                (point-to-register 4)))
 
 
 
@@ -880,9 +880,9 @@
 
 
 (defun goto-column ()
-   "Goto column, counting from column 0 at beginning of line."
-   (interactive)
-   (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
+  "Goto column, counting from column 0 at beginning of line."
+  (interactive)
+  (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
 
 
 
@@ -977,7 +977,7 @@
 
 ;;*****************************************************************************
 ;; Ediff
-;*****************************************************************************
+;;*****************************************************************************
 
 (require 'ediff)
 
@@ -1037,7 +1037,7 @@
 (require 'git)
 (require 'magit)
 
-;TODO: implement vc-status for all scm
+;;TODO: implement vc-status for all scm
 (global-set-key '[ (control x ) (v) (t) ] 'magit-status)
 (add-hook 'log-edit-mode-hook (lambda nil
                                 (flyspell-mode 1)))
@@ -1120,8 +1120,8 @@
         ;; whatnot), then divide by the height of a char to
         ;; get the height we want
         (add-to-list 'default-frame-alist
-                      (cons 'height (/ (- (x-display-pixel-height) 150)
-                                       (frame-char-height)))))))
+                     (cons 'height (/ (- (x-display-pixel-height) 150)
+                                      (frame-char-height)))))))
 
 (set-frame-size-according-to-resolution)
 
