@@ -284,9 +284,6 @@
 ;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
 
 
-(global-set-key "\C-\M-g" 'semantic-complete-jump)
-(global-set-key "\C-\M-b" 'semantic-complete-jump-local)
-(global-set-key "\C-\M-d" 'semantic-ia-fast-jump)
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
 (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
