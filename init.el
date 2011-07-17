@@ -292,7 +292,6 @@
 
 (global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
 
-(which-function-mode t)
 
 ;;Customization of srecode. I will back over srecode some day
 ;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
