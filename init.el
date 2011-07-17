@@ -264,6 +264,7 @@
 (require 'semantic-ia)
 (require 'semantic-gcc)
 (require 'semanticdb-global)
+(require 'semanticdb-ectag)
 (require 'ede)
 (require 'ede-locate)
 
@@ -284,7 +285,8 @@
 
 ;; enable ctags for some languages:
 ;;  Unix Shell, Perl, Pascal, Tcl, Fortran, Asm
-(semantic-load-enable-primary-exuberent-ctags-support)
+(when (semantic-ectag-version)
+  (semantic-load-enable-primary-exuberent-ctags-support))
 
 (global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
 
