@@ -119,8 +119,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ac-auto-start 3)
+ '(ac-comphist-file "~/.emacs.d/cache/ac-comphist.dat")
+ '(ac-dictionary-directories (quote ("~/.emacs.d/site-lisp/auto-complete//ac-dict")))
  '(ac-dwim t)
  '(ac-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode cc-mode c++-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode js2-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode asm-mode)))
+ '(ac-use-menu-map t)
+ '(ac-user-dictionary-files (quote ("~/.emacs.d/autocomplete-dict")))
  '(auto-image-file-mode t)
  '(auto-save-list-file-prefix "~/.emacs.d/cache/auto-save-list/.saves-")
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/cache"))))
@@ -287,7 +291,6 @@
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
 (global-set-key [(control  <)] 'semantic-ia-fast-jump)
 (global-set-key [(control  >)] 'semantic-mrub-switch-tags)
-(global-set-key [(control  return)] 'complete-tag)
 
 (require 'ede)
 (global-ede-mode 1)
@@ -402,26 +405,15 @@
 (require 'auto-complete-config)
 (ac-config-default)
 (global-auto-complete-mode t)
-(add-to-list
- 'ac-dictionary-directories "~/.emacs.d/site-lisp/auto-complete//ac-dict")
-
-
-
-(set-default 'ac-sources
-             '(ac-source-yasnippet
-               ac-source-abbrev
-               ac-source-words-in-buffer))
 
 (require 'dropdown-list)
 (setq yas/prompt-functions '(yas/dropdown-prompt
                              yas/ido-prompt
                              yas/completing-prompt))
-
-;;(define-key ac-complete-mode-map "\M-/" 'ac-stop)
-(global-set-key "\M-/" 'ac-start)
-(define-key ac-complete-mode-map "\C-n" 'ac-next)
-(define-key ac-complete-mode-map "\C-p" 'ac-previous)
-(define-key ac-complete-mode-map [(return)] 'ac-stop)
+(global-set-key [(control  return)] 'ac-start)
+(define-key ac-menu-map "\C-n" 'ac-next)
+(define-key ac-menu-map "\C-p" 'ac-previous)
+(ac-flyspell-workaround)
 
 
 
@@ -451,26 +443,17 @@
 
 (defun my-c-mode ()
   (doxymacs-mode)
-  (setq ac-override-local-map t)
   (setq yas/fallback-behavior 'call-other-command)
   (c-set-style "k&r")
+  (add-to-list 'ac-sources 'ac-source-semantic)
   (defadvice c-indent-line
     (before indent-and-forward-tempo activate)
     (when (my-inside-javadoc-comment)
       (tempo-forward-mark)))
-  (add-to-list 'ac-omni-completion-sources
-               (cons "\\." '(ac-source-semantic)))
-  (add-to-list 'ac-omni-completion-sources
-               (cons "->" '(ac-source-semantic)))
   (local-set-key [(return )]  'my-javadoc-return)
   (local-set-key "\C-cc" 'my-c-comment-function)
   (eldoc-mode)
   (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
-  (setq ac-sources
-        '(ac-source-semantic
-          ac-source-gtags
-          ac-source-yasnippet
-          ac-source-words-in-buffer))
   (turn-on-filladapt-mode)            ;This cause problems with space key in
   (auto-fill-mode t))                 ;lines which begins with /*
 
@@ -667,13 +650,7 @@
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key [(return ) ] 'newline-and-indent)
-            (auto-fill-mode t)
-            (setq ac-sources
-                  '(ac-source-yasnippet
-                    ac-source-abbrev
-                    ac-source-words-in-buffer
-                    ac-source-symbols))))
-
+            (auto-fill-mode t)))
 
 
 
