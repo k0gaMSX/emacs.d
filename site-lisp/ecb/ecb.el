@@ -25,7 +25,7 @@
 ;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-;; $Id: ecb.el,v 1.450 2009/06/26 11:30:56 berndl Exp $
+;; $Id: ecb.el,v 1.452 2010/02/23 16:09:08 berndl Exp $
 
 ;;; Commentary:
 ;;
@@ -42,7 +42,7 @@
 ;;   the Semantic Bovinator, or Imenu, or etags, for getting this list so all
 ;;   languages supported by any of these tools are automatically supported by
 ;;   ECB too)
-;; - a history of recently visited files, 
+;; - a history of recently visited files,
 ;; - the Speedbar and
 ;; - output from compilation (the "*compilation*" window) and other modes like
 ;;   help, grep etc. or whatever a user defines to be displayed in this
@@ -141,25 +141,15 @@
 (require 'ecb-upgrade)
 (require 'ecb-util)
 
+;; now we load all the cedet stuff
+(require 'ecb-cedet-wrapper)
+
 ;; if we miss some of the requirements we report an error.
-
-(defconst ecb-cedet-load-ok (featurep 'cedet))
-
-(defconst ecb-compiled-in-semantic-version
-  (eval-when-compile (ignore-errors semantic-version))
-  "Semantic-version used for byte-compiling ECB. Either nil when no semantic
-is loaded or the value of `semantic-version' at ECB-compilation time.")
-
-(defconst ecb-compiled-in-cedet-version
-  (eval-when-compile (ignore-errors cedet-version))
-  "Cedet-version used for byte-compiling ECB. Either nil when no semantic
-is loaded or the value of `cedet-version' at ECB-compilation time.")
-
-(when (not ecb-cedet-load-ok)
+(when ecb-cedet-missing-libraries
   (if (ecb-noninteractive)
-      (ecb-error "ECB is missing CEDET - check your CEDET-installation/setup!")
+      (ecb-error "ECB is missing the libs %s of CEDET - check your CEDET-installation/setup!"
+                 ecb-cedet-missing-libraries)
     (ecb-check-requirements)))
-
 
 ;; If we are here we can load ECB because at least we have installed and
 ;; loaded all required packages. The correct version will be checked
@@ -342,7 +332,7 @@ also be changed during running ECB."
                    (set sym val)
                    (ecb-activate-ecb-autocontrol-function
                     val 'ecb-stealthy-updates))))
-                    
+
 
 
 (defcustom ecb-minor-mode-text " ECB"
@@ -1212,83 +1202,12 @@ value of VAR is as before storing a NEW-VALUE for variable-symbol VAR."
          (setq ecb-temporary-changed-emacs-variables-alist
                (ecb-remove-assoc var ecb-temporary-changed-emacs-variables-alist)))))))
 
-(defun ecb-check-semantic-load ()
-  "Checks if cedet is correctly loaded if semantic 2.X is used and if the same
-semantic-version has been used for byte-compiling ECB and loading into Emacs.
-If ECB detects a problem it is reported and then an error is thrown."
-  (when (boundp 'semantic-version)
-    (let ((err-msg
-           (cond ;; Different semantic-version used for byte-compiling ECB and
-                 ;; loading into Emacs.
-                 ((not (string= semantic-version ecb-compiled-in-semantic-version))
-                  (concat "ECB has been byte-compiled with another semantic-version than currently\n"
-                          "loaded into Emacs:\n"
-                          (format "  + Semantic used for byte-compiling ECB: %s\n"
-                                  ecb-compiled-in-semantic-version)
-                          (format "  + Semantic currently loaded into Emacs: %s\n"
-                                  semantic-version)
-                          "Please ensure that ECB is byte-compiled with the same semantic-version as you\n"
-                          "you load into your Emacs. Check if you have byte-compiled ECB with the cedet-\n"
-                          "suite but loaded old semantic 1.X into Emacs or vice versa.\n\n"
-                          "In general it is recommended to start ECB first-time not byte-compiled\n"
-                          "and then call the command `ecb-byte-compile'. This ensures you byte-compile ECB\n"
-                          "with the same library-versions \(semantic etc.) as you load into Emacs.\n"
-                          "If you use the Makefile check the variables CEDET before compiling!\n"
-                          ))
-                 (t ""))))
-      (unless (= 0 (length err-msg)) 
-        (with-output-to-temp-buffer "*ECB semantic-load problems*"
-          (princ "Currently ECB can not be activated cause of the following reason:\n\n")
-          (princ err-msg)
-          (princ "\n\nPlease fix the reported problem and restart Emacs\n"))
-        (ecb-error "Please fix the reported problem and restart Emacs!")))))
-
-(defun ecb-check-cedet-load ()
-  "Checks if cedet is correctly loaded if semantic 2.X is used and if the same
-semantic-version has been used for byte-compiling ECB and loading into Emacs.
-If ECB detects a problem it is reported and then an error is thrown."
-  (when (boundp 'cedet-version)
-    (let ((err-msg
-           (cond ;; cedet was not compiled into ECB
-                 ((null ecb-compiled-in-cedet-version)
-                  (concat (format "Currently CEDET %s is loaded but ECB has been byte-compiled without\n"
-                                  cedet-version)
-                          "any CEDET. Please either use ECB un-byte-compiled \(remove all *.elc\n"
-                          "files from the ECB-directory) or byte-compile ECB correctly with CEDET!\n"
-                          "In the later case it is recommended to start ECB first-time not byte-compiled\n"
-                          "and then call the command `ecb-byte-compile'. This ensures you byte-compile ECB\n"
-                          "with the same CEDET-library-version as you load into Emacs.\n"
-                          "If you use the Makefile check the variable CEDET before compiling!\n"
-                          ))
-                 ;; Different cedet-version used for byte-compiling ECB and
-                 ;; loading into Emacs.
-                 ((not (string= cedet-version ecb-compiled-in-cedet-version))
-                  (concat "ECB has been byte-compiled with another cedet-version than currently\n"
-                          "loaded into Emacs:\n"
-                          (format "  + CECET used for byte-compiling ECB: %s\n"
-                                  ecb-compiled-in-cedet-version)
-                          (format "  + CEDET currently loaded into Emacs: %s\n"
-                                  cedet-version)
-                          "Please ensure that ECB is byte-compiled with the same cedet-version as you\n"
-                          "you load into your Emacs.\n\n"
-                          "In general it is recommended to start ECB first-time not byte-compiled\n"
-                          "and then call the command `ecb-byte-compile'. This ensures you byte-compile ECB\n"
-                          "with the same CEDET-library-version as you load into Emacs.\n"
-                          "If you use the Makefile check the variable CEDET before compiling!\n"))
-                 (t ""))))
-      (unless (= 0 (length err-msg)) 
-        (with-output-to-temp-buffer "*ECB cedet-load problems*"
-          (princ "Currently ECB can not be activated cause of the following reason:\n\n")
-          (princ err-msg)
-          (princ "\n\nPlease fix the reported problem and restart Emacs\n"))
-        (ecb-error "Please fix the reported problem and restart Emacs!")))))
-
 
 (defun ecb-activate--impl ()
   "See `ecb-activate'.  This is the implementation of ECB activation."
   (when (or (null ecb-frame) (not (frame-live-p ecb-frame)))
     (setq ecb-frame (selected-frame)))
-  
+
   (if ecb-minor-mode
       (when (and (not (equal (selected-frame) ecb-frame))
                  (or (equal ecb-activation-selects-ecb-frame-if-already-active t)
@@ -1297,7 +1216,7 @@ If ECB detects a problem it is reported and then an error is thrown."
         (ecb-select-ecb-frame)
         (ecb-update-directories-buffer))
 
-    (let ((stack-trace-on-error stack-trace-on-error))
+    (let ((stack-trace-on-error nil))
       ;; we activate only if all before-hooks return non nil
       (when (run-hook-with-args-until-failure 'ecb-before-activate-hook)
 
@@ -1309,17 +1228,17 @@ If ECB detects a problem it is reported and then an error is thrown."
         (when (and ecb-running-xemacs
                    (boundp 'progress-feedback-use-echo-area))
           (ecb-modify-emacs-variable 'progress-feedback-use-echo-area 'store t))
-      
+
         ;; checking if there are cedet or semantic-load problems
         (ecb-check-cedet-load)
         (ecb-check-semantic-load)
-              
+
         ;; checking the requirements
         (ecb-check-requirements)
 
         (condition-case err-obj
             (progn
-              
+
               ;; initialize the navigate-library
               (ecb-nav-initialize)
 
@@ -1330,7 +1249,7 @@ If ECB detects a problem it is reported and then an error is thrown."
 
               ;; we need the custom-all advice here!
               (ecb-enable-advices 'ecb-methods-browser-advices)
-              
+
               ;; maybe we must upgrade some not anymore compatible or even renamed
               ;; options
               (when (and ecb-auto-compatibility-check
@@ -1357,7 +1276,7 @@ If ECB detects a problem it is reported and then an error is thrown."
 
               ;; enable advices for the compatibility with other packages
               (ecb-enable-advices 'ecb-compatibility-advices)
-            
+
               ;; set the ecb-frame
               (let ((old-ecb-frame ecb-frame))
                 (if ecb-new-ecb-frame
@@ -1376,12 +1295,12 @@ If ECB detects a problem it is reported and then an error is thrown."
               (select-frame ecb-frame)
 
               (ecb-enable-own-temp-buffer-show-function t)
-      
+
               ;; now we can activate ECB
 
               ;; first we run all tree-buffer-creators
               (ecb-tree-buffer-creators-run)
-    
+
               ;; activate the eshell-integration - does not load eshell but
               ;; prepares ECB to run eshell right - if loaded and activated
               (ecb-eshell-activate-integration)
@@ -1392,7 +1311,7 @@ If ECB detects a problem it is reported and then an error is thrown."
               (add-hook (ecb--semantic-after-toplevel-cache-change-hook)
                         'ecb-rebuild-methods-buffer-with-tagcache t)
 ;;               (add-hook (ecb--semantic--before-fetch-tags-hook)
-;;                         'ecb-prevent-from-parsing-if-exceeding-threshold)              
+;;                         'ecb-prevent-from-parsing-if-exceeding-threshold)
               (ecb-activate-ecb-autocontrol-function ecb-highlight-tag-with-point-delay
                                                      'ecb-tag-sync)
               (ecb-activate-ecb-autocontrol-function ecb-basic-buffer-sync-delay
@@ -1420,22 +1339,21 @@ If ECB detects a problem it is reported and then an error is thrown."
               (ecb-stealthy-function-state-init)
               (ecb-activate-ecb-autocontrol-function ecb-stealthy-tasks-delay
                                                       'ecb-stealthy-updates)
-            
+
               ;; running the compilation-buffer update first time
               (ecb-compilation-buffer-list-init)
-                            
+
               ;; ediff-stuff; we operate here only with symbols to avoid bytecompiler
               ;; warnings
               (ecb-activate-ediff-compatibility)
 
               ;; enabling the VC-support
               (ecb-vc-enable-internals 1)
-              
+
               ;; menus - dealing with the menu for XEmacs is really a pain...
               (when ecb-running-xemacs
                 (let ((dummy-buf-name " *dummytogetglobalmap*"))
-                  (save-excursion
-                    (set-buffer (get-buffer-create dummy-buf-name))
+                  (with-current-buffer (get-buffer-create dummy-buf-name)
                     (add-submenu nil ecb-minor-menu)
                     (kill-buffer dummy-buf-name)))
                 (save-excursion
@@ -1462,7 +1380,7 @@ If ECB detects a problem it is reported and then an error is thrown."
            (ecb-clean-up-after-activation-failure
             "Errors during the hooks of ecb-activate-before-layout-draw-hook."
             err-obj)))
-         
+
         (setq ecb-minor-mode t)
 
         ;; now we draw the screen-layout of ECB.
@@ -1477,7 +1395,7 @@ If ECB detects a problem it is reported and then an error is thrown."
                                           (not (ecb-window-configuration-invalidp
                                                 ecb-last-window-config-before-deactivation)))))
               (ecb-enable-temp-buffer-shrink-to-fit ecb-compile-window-height)
-              (if use-last-win-conf                     
+              (if use-last-win-conf
                   (setq ecb-edit-area-creators
                         (nth 4 ecb-last-window-config-before-deactivation)))
 
@@ -1500,10 +1418,10 @@ If ECB detects a problem it is reported and then an error is thrown."
                 (case ecb-split-edit-window-after-start
                   (horizontal (split-window-horizontally))
                   (vertical (split-window-vertically))))
-            
+
               ;; now we synchronize all ECB-windows
               (ecb-window-sync)
-            
+
               ;; now update all the ECB-buffer-modelines
               (ecb-mode-line-format)
               )
@@ -1511,27 +1429,26 @@ If ECB detects a problem it is reported and then an error is thrown."
            (ecb-clean-up-after-activation-failure
             "Errors during the layout setup of ECB." err-obj))
           )
-       
+
         (condition-case err-obj
             (let ((edit-window (car (ecb-canonical-edit-windows-list))))
               (when (and ecb-display-default-dir-after-start
                          (null (ecb-buffer-file-name
                                 (window-buffer edit-window))))
                 (ecb-set-selected-directory
-                 (ecb-fix-filename (save-excursion
-                                     (set-buffer (window-buffer edit-window))
+                 (ecb-fix-filename (with-current-buffer (window-buffer edit-window)
                                      default-directory)))))
           (error
            (ecb-clean-up-after-activation-failure
             "Errors during setting the default directory." err-obj)))
-        
+
         (condition-case err-obj
             ;; we run any personal hooks
             (run-hooks 'ecb-activate-hook)
           (error
            (ecb-clean-up-after-activation-failure
             "Errors during the hooks of ecb-activate-hook." err-obj)))
-        
+
         (condition-case err-obj
             ;; enable mouse-tracking for the ecb-tree-buffers; we do this after
             ;; running the personal hooks because if a user put´s activation of
@@ -1579,7 +1496,7 @@ If ECB detects a problem it is reported and then an error is thrown."
           (ecb-show-tip-of-the-day))
 
         (ecb-enable-advices 'ecb-layout-basic-adviced-functions)
-        
+
         (condition-case err-obj
             ;;now take a snapshot of the current window configuration
             (setq ecb-activated-window-configuration
@@ -1604,13 +1521,13 @@ If ECB detects a problem it is reported and then an error is thrown."
 
       (setq ecb-last-window-config-before-deactivation
             (ecb-current-window-configuration))
-      
+
       ;; deactivating the adviced functions
       (dolist (adviced-set-elem ecb-adviced-function-sets)
         ;; Note: as permanent defined advices-sets are not disabled here!
         (ecb-disable-advices (car adviced-set-elem)))
 
-      (ecb-enable-own-temp-buffer-show-function nil)      
+      (ecb-enable-own-temp-buffer-show-function nil)
 
       (ecb-enable-temp-buffer-shrink-to-fit nil)
 
@@ -1618,7 +1535,7 @@ If ECB detects a problem it is reported and then an error is thrown."
       (ignore-errors (ecb-speedbar-deactivate))
 
       ;; deactivates the eshell-integration; this disables also the
-      ;; eshell-advices! 
+      ;; eshell-advices!
       (ecb-eshell-deactivate-integration)
 
       ;; For XEmacs
@@ -1653,7 +1570,7 @@ If ECB detects a problem it is reported and then an error is thrown."
               (if (car (find-menu-item current-menubar
                                        (list ecb-menu-name)))
                   (delete-menu-item (list ecb-menu-name)))))))
-      
+
       (remove-hook (if ecb-running-xemacs
                        'activate-menubar-hook
                      'menu-bar-update-hook)
@@ -1662,7 +1579,7 @@ If ECB detects a problem it is reported and then an error is thrown."
       ;; run any personal hooks
       (unless run-no-hooks
         (run-hooks 'ecb-deactivate-hook))
-    
+
       ;; clear the ecb-frame. Here we try to preserve the split-state after
       ;; deleting the ECB-screen-layout.
       (when (frame-live-p ecb-frame)
@@ -1680,10 +1597,10 @@ If ECB detects a problem it is reported and then an error is thrown."
               (ecb-make-windows-not-dedicated ecb-frame)
 
               ;; deletion of all windows. (All other advices are already
-              ;; disabled!) 
+              ;; disabled!)
               (ecb-with-original-permanent-layout-functions
                (delete-other-windows))
-              
+
               ;; some paranoia....
               (set-window-dedicated-p (selected-window) nil)
 
@@ -1694,7 +1611,7 @@ If ECB detects a problem it is reported and then an error is thrown."
                   (ecb-with-original-permanent-layout-functions
                    (ecb-restore-edit-area))
                 (ecb-edit-area-creators-init))
-              
+
               (setq edit-win-list-after-redraw (ecb-canonical-edit-windows-list))
 
               ;; a safety-check if we have now at least as many windows as
@@ -1715,7 +1632,7 @@ If ECB detects a problem it is reported and then an error is thrown."
               ;; at the end we always stay in that window as before the
               ;; deactivation.
               (when (integerp window-before-redraw)
-                (ecb-select-edit-window window-before-redraw))       
+                (ecb-select-edit-window window-before-redraw))
               ;; if we were in an edit-window before deactivation let us go to
               ;; the old place
               (when pos-before-redraw
@@ -1727,10 +1644,10 @@ If ECB detects a problem it is reported and then an error is thrown."
                         (car oops) (cdr oops))
            (ignore-errors (ecb-make-windows-not-dedicated ecb-frame))
            (ignore-errors (delete-other-windows))))
-        
+
         (if (get 'ecb-frame 'ecb-new-frame-created)
             (ignore-errors (delete-frame ecb-frame t))))
-        
+
       (ecb-initialize-layout)
 
       ;; we do NOT disable the permanent-advices of
@@ -1747,7 +1664,7 @@ If ECB detects a problem it is reported and then an error is thrown."
       (dolist (tb-elem (ecb-ecb-buffer-registry-name-list 'only-tree-buffers))
         (tree-buffer-destroy tb-elem))
       (ecb-ecb-buffer-registry-init)
-      
+
       (setq ecb-activated-window-configuration nil)
 
       (setq ecb-minor-mode nil)
@@ -1758,8 +1675,8 @@ If ECB detects a problem it is reported and then an error is thrown."
       (when (and ecb-running-xemacs
                  (boundp 'progress-feedback-use-echo-area))
         (ecb-modify-emacs-variable 'progress-feedback-use-echo-area 'restore))))
-      
-  
+
+
   (if (null ecb-minor-mode)
       (message "The ECB is now deactivated."))
   ecb-minor-mode)
@@ -1803,19 +1720,7 @@ lisp-file FILE.el which is either newer than FILE.elc or if FILE.elc doesn't
 exist."
   (interactive "P")
   (ecb-check-requirements)
-  (let ((load-path
-	 (append (list (ecb-file-name-directory
-			(or (locate-library "semantic")
-			    (ecb-error "Semantic is not in the load-path!")))
-                       (ecb-file-name-directory
-			(or (locate-library "eieio")
-			    (ecb-error "Eieio is not in the load-path!")))
-                       (ecb-file-name-directory
-			(or (locate-library "speedbar")
-			    (ecb-error "Speedbar is not in the load-path!")))
-		       (ecb-file-name-directory (locate-library "ecb")))
-		 load-path))
-	(files (ecb-directory-files (ecb-file-name-directory (locate-library "ecb"))
+  (let ((files (ecb-directory-files (ecb-file-name-directory (locate-library "ecb"))
                                     t)))
     (save-excursion
       (dolist (file files)
@@ -1853,13 +1758,15 @@ exist."
 
 ;; parsing of our ecb-macros
 
-(eval-after-load "semantic-el"
+(eval-after-load (if (locate-library "semantic/bovine/el")
+                     "el"
+                   "semantic-el")
   (condition-case oops
       (when (fboundp 'semantic-elisp-setup-form-parser)
         ;; defecb-multicache
         (semantic-elisp-reuse-form-parser defvar defecb-multicache)
         ;; defecb-advice-set
-        (semantic-elisp-reuse-form-parser defvar defecb-advice-set)        
+        (semantic-elisp-reuse-form-parser defvar defecb-advice-set)
         ;; defecb-stealthy and tree-buffer-defpopup-command
         (semantic-elisp-setup-form-parser
             (lambda (read-lobject start end)
@@ -2028,7 +1935,7 @@ exist."
   (error
    (ecb-warning "Not critical error during supporting fontifying the ecb-macros: (error-type: %S, error-data: %S)"
                 (car oops) (cdr oops))))
-  
+
 
 ;; Klaus Berndl <klaus.berndl@sdm.de>: Cause of the magic autostart stuff of
 ;; the advice-package we must disable at load-time all these advices!!
