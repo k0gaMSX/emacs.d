@@ -214,6 +214,7 @@
  '(w3m-use-cookies t)
  '(winring-prompt-on-create nil)
  '(winring-show-names t)
+ '(yas/prompt-functions (quote (yas/dropdown-prompt yas/ido-prompt yas/completing-prompt)))
  '(yas/root-directory (quote ("~/.emacs.d/yasnippets")) nil (yasnippet))
  '(yas/triggers-in-field t))
 (custom-set-faces
@@ -414,10 +415,6 @@
 (ac-config-default)
 (global-auto-complete-mode t)
 
-(require 'dropdown-list)
-(setq yas/prompt-functions '(yas/dropdown-prompt
-                             yas/ido-prompt
-                             yas/completing-prompt))
 (global-set-key [(control  return)] 'ac-start)
 (define-key ac-menu-map "\C-n" 'ac-next)
 (define-key ac-menu-map "\C-p" 'ac-previous)
@@ -451,7 +448,6 @@
 
 (defun my-c-mode ()
   (doxymacs-mode)
-  (setq yas/fallback-behavior 'call-other-command)
   (c-set-style "k&r")
   (add-to-list 'ac-sources 'ac-source-semantic)
   (defadvice c-indent-line
