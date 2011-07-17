@@ -55,8 +55,8 @@
 (load-file (concat cedet-home "/common/cedet.elc"))
 
 
-(require 'setup-keys)                   ;Aditional keys
-(require 'menu-bar+)                    ;Aditional menus
+
+
 
 
 (defconst my-doxymacs-JavaDoc-function-comment-template
