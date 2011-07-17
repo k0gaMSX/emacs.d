@@ -1024,6 +1024,10 @@
 
 ;;TODO: implement vc-status for all scm
 (global-set-key '[ (control x ) (v) (t) ] 'magit-status)
+
+(add-hook 'magit-log-edit-mode-hook (lambda nil
+                                      (flyspell-mode 1)))
+
 (add-hook 'log-edit-mode-hook (lambda nil
                                 (flyspell-mode 1)))
 
