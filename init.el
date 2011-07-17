@@ -651,6 +651,7 @@
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (local-set-key [(return ) ] 'newline-and-indent)
+            (eldoc-mode)
             (auto-fill-mode t)))
 
 
@@ -1123,8 +1124,6 @@
 
 (require 'w3m)
 (require 'google-define)
-(eldoc-mode)
-
 
 
 
