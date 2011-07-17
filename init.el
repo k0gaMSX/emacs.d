@@ -263,10 +263,22 @@
 (require 'semantic-ia)
 (require 'semantic-gcc)
 (require 'semanticdb-global)
-
+(require 'ede)
+(require 'ede-locate)
 
 (setq semantic-load-turn-everything-on t)
 (semantic-load-enable-excessive-code-helpers)
+
+
+(global-ede-mode 1)
+
+(when (cedet-gnu-global-version-check t)
+  (add-to-list 'ede-locate-setup-options 'ede-locate-global)
+  (semanticdb-enable-gnu-global-databases 'c-mode)
+  (semanticdb-enable-gnu-global-databases 'c++-mode))
+
+(when (executable-find "locate")
+  (add-to-list 'ede-locate-setup-options 'ede-locate-locate))
 
 
 ;; enable ctags for some languages:
@@ -290,8 +302,6 @@
 (global-set-key [(control  <)] 'semantic-ia-fast-jump)
 (global-set-key [(control  >)] 'semantic-mrub-switch-tags)
 
-(require 'ede)
-(global-ede-mode 1)
 
 
 
