@@ -172,6 +172,7 @@
  '(gdb-speedbar-auto-raise t)
  '(global-semantic-idle-summary-mode t nil (semantic-idle))
  '(global-semantic-idle-tag-highlight-mode t nil (semantic-idle))
+ '(global-semantic-idle-local-symbol-highlight-mode t nil (semantic-idle))
  '(global-semantic-stickyfunc-mode nil nil (semantic-util-modes))
  '(gnus-nntp-server "quimby.gnus.org")
  '(grep-files-aliases (quote (("el" . "*.el") ("ch" . "*.[ch] *.cpp *.hxx *.cxx *.hpp") ("c" . "*.c *.cpp *.cxx") ("h" . "*.h *.hpp *.hxx") ("asm" . "*.[sS]") ("m" . "[Mm]akefile*") ("cl" . "[Cc]hange[Ll]og*") ("tex" . "*.tex") ("texi" . "*.texi") ("d" . "*.lua *.ui *.xml *.cfg *.def *.lvl *.trk *.xslt *.qrc *.c *.cpp *.cxx *.h *.hpp *.hxx") ("u" . "*.ui *.xml *.qrc *.xslt") ("g" . "*.def *.xml *.lvl *.trk *.xslt") ("l" . "*.lua"))))
