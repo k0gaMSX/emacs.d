@@ -1146,3 +1146,4 @@
 
 (when (file-exists-p "~/.emacs.d/local-post.el")
   (load-file "~/.emacs.d/local-post.el"))
+(put 'scroll-left 'disabled nil)
