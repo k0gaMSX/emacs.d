@@ -147,6 +147,7 @@
  '(ecb-stealthy-tasks-delay 7)
  '(ecb-tip-of-the-day nil)
  '(ecb-vc-enable-support t)
+ '(ecb-version-check nil)
  '(ecb-windows-width 0.2)
  '(ecb-winman-winring-name "ECB")
  '(ede-project-placeholder-cache-file "~/.emacs.d/cache/.projects.ede")

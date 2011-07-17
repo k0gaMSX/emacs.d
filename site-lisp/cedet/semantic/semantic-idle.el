@@ -606,11 +606,11 @@ FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
 This routine creates the following functions and variables:"
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
-	(mode 	(intern (concat (symbol-name name) "-mode")))
-	(hook 	(intern (concat (symbol-name name) "-mode-hook")))
-	(map  	(intern (concat (symbol-name name) "-mode-map")))
-	(setup 	(intern (concat (symbol-name name) "-mode-setup")))
-	(func 	(intern (concat (symbol-name name) "-idle-function"))))
+	(mode	(intern (concat (symbol-name name) "-mode")))
+	(hook	(intern (concat (symbol-name name) "-mode-hook")))
+	(map	(intern (concat (symbol-name name) "-mode-map")))
+	(setup	(intern (concat (symbol-name name) "-mode-setup")))
+	(func	(intern (concat (symbol-name name) "-idle-function"))))
 
     `(eval-and-compile
        (defun ,global (&optional arg)
@@ -697,7 +697,10 @@ Return non-nil if the minor mode is enabled.")
 		  (symbol-name mode) "'.")
 	 ,@forms))))
 (put 'define-semantic-idle-service 'lisp-indent-function 1)
-
+(add-hook 'edebug-setup-hook
+          (lambda ()
+	    (def-edebug-spec define-semantic-idle-service
+	      (&define name stringp def-body))))
 
 ;;; SUMMARY MODE
 ;;
@@ -912,7 +915,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	   ;; We use pulse, but we don't want the flashy version,
 	   ;; just the stable version.
 	   (pulse-flag nil))
-      (when ctxt
+      (when (and ctxt tag)
 	;; Highlight the original tag?  Protect against problems.
 	(condition-case nil
 	    (semantic-idle-symbol-maybe-highlight target)
@@ -1160,7 +1163,7 @@ be called."
   ;;     :active   t
   ;;     :style    'toggle
   ;;     :selected '(let ((tag (semantic-current-tag)))
-  ;; 		   (and tag (semantic-tag-folded-p tag)))
+  ;;		   (and tag (semantic-tag-folded-p tag)))
   ;;     :help     "Fold the current tag to one line"))
     "---"
     (senator-menu-item
@@ -1195,17 +1198,19 @@ be called."
     ;; Format TAG-LIST and put the formatted string into the header
     ;; line.
     (setq header-line-format
-	  (concat
-	   semantic-idle-breadcrumbs-header-line-prefix
-	   (if tag-list
-	       (semantic-idle-breadcrumbs--format-tag-list
-		tag-list
-		(- width
-		   (length semantic-idle-breadcrumbs-header-line-prefix)))
-	     (propertize
-	      "<not on tags>"
-	      'face
-	      'font-lock-comment-face)))))
+	  (replace-regexp-in-string ;; Since % is interpreted in the
+	   "\\(%\\)" "%\\1"         ;; mode/header line format, we
+	   (concat                  ;; have to escape all occurrences.
+	    semantic-idle-breadcrumbs-header-line-prefix
+	    (if tag-list
+		(semantic-idle-breadcrumbs--format-tag-list
+		 tag-list
+		 (- width
+		    (length semantic-idle-breadcrumbs-header-line-prefix)))
+	      (propertize
+	       "<not on tags>"
+	       'face
+	       'font-lock-comment-face))))))
 
   ;; Update the header line.
   (force-mode-line-update))
@@ -1219,7 +1224,9 @@ TODO THIS FUNCTION DOES NOT WORK YET."
   (let ((width (- (nth 2 (window-edges))
 		  (nth 0 (window-edges)))))
     (setq mode-line-format
-	  (semantic-idle-breadcrumbs--format-tag-list tag-list width)))
+	  (replace-regexp-in-string ;; see comment in
+	   "\\(%\\)" "%\\1"         ;; `semantic-idle-breadcrumbs--display-in-header-line'
+	   (semantic-idle-breadcrumbs--format-tag-list tag-list width))))
 
   (force-mode-line-update))
 
