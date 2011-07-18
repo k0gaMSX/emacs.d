@@ -1,6 +1,5 @@
 ;;	$Id$
 
-;; TODO: Put english dictionary in programming modes
 ;; TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
 ;;      windows  is selected  I want  the ECB  windos stay  selected  and not
 ;;      changes to the source windows
@@ -162,6 +161,7 @@
  '(fill-column 76)
  '(filladapt-token-table (quote (("^" beginning-of-line) (">+" citation->) ("\\(\\w\\|[0-9]\\)[^'`\"<
 ]*>[    ]*" supercite-citation) (";+" lisp-comment) ("#+" sh-comment) ("%+" postscript-comment) ("^[    ]*\\(//\\|\\*\\)[^      ]*" c++-comment) ("@c[ \\t]" texinfo-comment) ("@comment[       ]" texinfo-comment) ("\\\\item[         ]" bullet) ("[0-9]+\\.[         ]" bullet) ("[0-9]+\\(\\.[0-9]+\\)+[    ]" bullet) ("[A-Za-z]\\.[       ]" bullet) ("(?[0-9]+)[         ]" bullet) ("(?[A-Za-z])[       ]" bullet) ("[0-9]+[A-Za-z]\\.[         ]" bullet) ("(?[0-9]+[A-Za-z])[         ]" bullet) ("[-~*+]+[   ]" bullet) ("o[         ]" bullet) ("[\\@]\\(param\\|throw\\|exception\\|addtogroup\\|defgroup\\)[      ]*[A-Za-z_][A-Za-z_0-9]*[       ]+" bullet) ("[\\@][A-Za-z_]+[  ]*" bullet) ("[         ]+" space) ("$" end-of-line))))
+ '(flyspell-default-dictionary "british")
  '(font-lock-maximum-decoration t)
  '(font-lock-mode t t (font-lock))
  '(gdb-cpp-define-alist-program "cc -E  -")
@@ -1042,9 +1042,6 @@
 (defadvice flyspell-mode
   (after advice-flyspell-check-buffer-on-start activate)
   (flyspell-buffer))
-
-(add-hook 'kill-emacs-hook (lambda nil
-                             (ispell-pdict-save)))
 
 ;; ****************************************************************************
 ;; User defined functions
