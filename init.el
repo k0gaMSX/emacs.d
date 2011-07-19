@@ -6,7 +6,6 @@
 ;; TODO: link fill-column and comment init-pos and end-pos
 ;; TODO: Document str-fill-spaces-c-comment defun
 ;; TODO: meterle acelerador de raton
-;; TODO: añadir la pila de buffers
 ;; TODO: Modify planner to allow change directory where is saved timeclock file
 ;; TODO: Configure ps-printer-name variable
 ;; TODO: Put highlight-80+ & highline into mouse  menu
@@ -276,6 +275,36 @@
 (global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
 
 
+(defvar semantic-tags-location-ring (make-ring 20))
+
+
+
+(defun semantic-goto-definition (point)
+  "Goto definition using semantic-ia-fast-jump
+save the pointer marker if tag is found"
+  (interactive "d")
+  (condition-case err
+      (progn
+        (ring-insert semantic-tags-location-ring (point-marker))
+        (semantic-ia-fast-jump point))
+    (error
+     ;;if not found remove the tag saved in the ring
+     (set-marker (ring-remove semantic-tags-location-ring 0) nil nil)
+     (signal (car err) (cdr err)))))
+
+
+(defun semantic-pop-tag-mark ()
+  "popup the tag save by semantic-goto-definition"
+  (interactive)
+  (if (ring-empty-p semantic-tags-location-ring)
+      (message "%s" "No more tags available")
+    (let* ((marker (ring-remove semantic-tags-location-ring 0))
+              (buff (marker-buffer marker))
+                 (pos (marker-position marker)))
+      (if (not buff)
+            (message "Buffer has been deleted")
+        (switch-to-buffer buff)
+        (goto-char pos)))))
 
 (when (cedet-gnu-global-version-check t)
   (require 'semanticdb-global)
@@ -304,8 +333,8 @@
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
 (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
 (global-set-key "\C-\M-t" 'senator-completion-menu-popup)
-(global-set-key [(control  <)] 'semantic-ia-fast-jump)
-(global-set-key [(control  >)] 'semantic-mrub-switch-tags)
+(global-set-key [(control  <)] 'semantic-goto-definition)
+(global-set-key [(control  >)] 'semantic-pop-tag-mark)
 
 ;;Customization of srecode. I will back over srecode some day
 ;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
@@ -1113,9 +1142,7 @@
 ;; It is necessary put this after load the rest of things
 ;;******************************************************************************
 
-(global-set-key [(C-down-mouse-1)] 'semantic-ia-fast-mouse-jump)
-
-
+(global-set-key [(C-down-mouse-1)] 'semantic-goto-definition)
 
 
 ;;******************************************************************************
