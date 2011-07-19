@@ -192,7 +192,7 @@
  '(password-cache-expiry 600)
  '(query-replace-highlight t)
  '(require-final-newline t)
- '(safe-local-variable-values (quote ((encoding . iso-8859-15))))
+ '(safe-local-variable-values (quote ((indent-tabs-mode . 8) (c-set-style . gnu) (c-set-style . linux) (Mode . C) (Mode . C++) (encoding . iso-8859-15))))
  '(scroll-bar-mode (quote right))
  '(search-highlight t)
  '(semantic-idle-scheduler-work-idle-time 15)
