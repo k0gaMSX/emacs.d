@@ -198,7 +198,7 @@
  '(search-highlight t)
  '(semantic-idle-scheduler-work-idle-time 15)
  '(semanticdb-default-save-directory "~/.emacs.d/cache")
- '(semanticdb-default-system-save-directory "~/.emacs.d/cache")
+ '(semanticdb-default-system-save-directory "~/.emacs.d/cache/system")
  '(shell-file-name "bash")
  '(sr-popviewer-mode nil)
  '(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/srecode/templates/")))
@@ -263,41 +263,42 @@
 
 (require 'semantic-load)
 (require 'semanticdb-system)
-(require 'semantic-ia)
 (require 'semantic-gcc)
-(require 'semanticdb-global)
-(require 'semanticdb-ectag)
+(require 'semantic-ia)
 (require 'ede)
 (require 'ede-locate)
 
+(semantic-gcc-setup)
 (setq semantic-load-turn-everything-on t)
 (semantic-load-enable-excessive-code-helpers)
-
-
+(semanticdb-load-system-caches)
 (global-ede-mode 1)
+(global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
+
+
 
 (when (cedet-gnu-global-version-check t)
+  (require 'semanticdb-global)
   (add-to-list 'ede-locate-setup-options 'ede-locate-global)
   (semanticdb-enable-gnu-global-databases 'c-mode)
   (semanticdb-enable-gnu-global-databases 'c++-mode))
 
+(when (cedet-cscope-version-check t)
+  (require 'semanticdb-cscope)
+  (semanticdb-enable-cscope-databases)
+  (add-to-list 'ede-locate-setup-options 'ede-locate-cscope))
+
+(when (cedet-idutils-version-check t)
+  (add-to-list 'ede-locate-setup-options 'ede-locate-idutils))
+
+(require 'semanticdb-ectag)
+(when (semantic-ectag-version)
+  (semantic-load-enable-primary-exuberent-ctags-support)
+  (semantic-load-enable-secondary-exuberent-ctags-support))
+
 (when (executable-find "locate")
   (add-to-list 'ede-locate-setup-options 'ede-locate-locate))
 
-
-;; enable ctags for some languages:
-;;  Unix Shell, Perl, Pascal, Tcl, Fortran, Asm
-(when (semantic-ectag-version)
-  (semantic-load-enable-primary-exuberent-ctags-support))
-
-(global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
-
-
-;;Customization of srecode. I will back over srecode some day
-;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
-;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
-;; "~/.emacs.d/srecode/")))
-;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
 
 
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
@@ -306,6 +307,11 @@
 (global-set-key [(control  <)] 'semantic-ia-fast-jump)
 (global-set-key [(control  >)] 'semantic-mrub-switch-tags)
 
+;;Customization of srecode. I will back over srecode some day
+;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
+;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
+;; "~/.emacs.d/srecode/")))
+;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
 
 
 
@@ -418,7 +424,12 @@
 (ac-config-default)
 (global-auto-complete-mode t)
 
-(global-set-key [(control  return)] 'ac-start)
+(global-set-key [(control  return)]
+                (lambda nil
+                  (interactive)
+                  (auto-complete '(ac-complete-semantic
+                                   ac-complete-semantic-raw))))
+
 (define-key ac-menu-map "\C-n" 'ac-next)
 (define-key ac-menu-map "\C-p" 'ac-previous)
 (ac-flyspell-workaround)
@@ -465,24 +476,6 @@
   (auto-fill-mode t))                 ;lines which begins with /*
 
 
-(setq-mode-local c-mode
-                 semanticdb-find-default-throttle
-                 '(project unloaded recursive omniscience))
-
-(setq-mode-local c++-mode
-                 semanticdb-find-default-throttle
-                 '(project unloaded recursive omniscience))
-
-
-;;;(srecode-minor-mode t)
-;; if you want to enable support for gnu global -> CRASH!!!!
-;; (semanticdb-enable-gnu-global-databases 'c-mode)
-;; (semanticdb-enable-gnu-global-databases 'c++-mode)
-;;  if you want to enable support for exuberant ctags <- Problems
-;; (semanticdb-enable-exuberent-ctags 'c-mode)
-;; (semanticdb-enable-exuberent-ctags 'c++-mode)
-
-;;(semanticdb-load-ebrowse-caches
 
 (add-hook 'c-mode-hook 'my-c-mode)
 (add-hook 'c++-mode-hook 'my-c-mode)
