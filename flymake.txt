@@ -1,0 +1,73 @@
+
+Automake
+
+When  using a  moderately complex  automake project,  the trivial  option of
+adding  a check-syntax  rule on  every “interesting”  Makefile is  no longer
+enough, as you  might have, for example, target-dependant  compile flags, as
+well as files that must be compiled with different compilers.
+
+Instead, you can  create a flymake.mk file (defining  the check-syntax rule)
+somewhere on your project, and include it on every Makefile.am that you want
+to add syntax check support to:
+
+  include $(top_srcdir)/flymake.mk
+
+Then, the flymake.mk file, would look something like:
+
+  get_cs_flags = $(foreach target,$(subst .,_,$(subst -,_,$($(2)))),$($(target)_$(1)FLAGS))
+  get_cs_all_flags = $(foreach type,$(2),$(call get_cs_flags,$(1),$(type)))
+  get_cs_compile = $(if $(subst C,,$(1)),$($(1)COMPILE),$(COMPILE))
+  get_cs_cmdline = $(call get_cs_compile,$(1)) $(call get_cs_all_flags,$(1),check_PROGRAMS bin_PROGRAMS lib_LTLIBRARIES) -fsyntax-only
+
+  check-syntax:
+  	s=$(suffix $(CHK_SOURCES));\
+  	if   [ "$$s" = ".c"   ]; then $(call get_cs_cmdline,C)	 $(CHK_SOURCES);\
+  	elif [ "$$s" = ".cpp" ]; then $(call get_cs_cmdline,CXX) $(CHK_SOURCES);\
+  	else exit 1; fi
+
+  .PHONY: check-syntax
+
+    * Note: I’ve only added support for checking the syntax on C and C++ files,
+            but others should be similarly handled.
+    * Warning: This will only work for files that are compiled using the automake-provided
+              compilation rules.
+    * Warning: This only includes the compiler flags. So if you are passing include
+               directories with CPPFLAGS (i.e. foo_CPPFLAGS=-I $pathToIncludeDir) you
+               need to replace for example the line
+
+                  “elif [ “$$s” = “.cpp” ]; then $(call get_cs_cmdline,CXX) $(CHK_SOURCES);\”
+               by
+
+                  “elif [ “$$s” = “.cpp” ]; then $(call get_cs_cmdline,CXX) $(call get_cs_cmdline,CPP) $(CHK_SOURCES);\”.
+
+
+--------------------------------------------------------------------------------
+
+It works really well! You need some makefile magic though, this is what I used
+for the Wine build system:
+
+
+check-syntax:
+	$(MAKE) syntax-target SYNTAX="-fsyntax-only"
+
+syntax-target: $(SOURCES:.c=.o)
+
+-MikeHearn?
+
+In my simple project I use the following target in the Makefile:
+
+.PHONY: check-syntax
+check-syntax:
+	$(CXX) -Wall -Wextra -pedantic -fsyntax-only $(CHK_SOURCES)
+
+
+--------------------------------------------------------------------------------
+This hack will works in almost Makefile:
+
+.PHONY:  check-syntax syntax-target
+
+
+check-syntax:
+	$(MAKE) $(MFLAGS) CFLAGS=-fsyntax-only syntax-target
+
+syntax-target: $(CHK_SOURCES:.c=.o)
