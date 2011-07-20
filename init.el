@@ -570,17 +570,13 @@ save the pointer marker if tag is found"
 
 (add-hook 'c-mode-hook 'my-c-mode)
 (add-hook 'c++-mode-hook 'my-c-mode)
-(setq auto-mode-alist
-      (append auto-mode-alist
-              '(("\\.pc$" . c-mode))))
 
 
 (require 'eassist)
 (setq eassist-header-switches
-      '(("h" "cpp" "cc" "c" "pc") ("hpp" "cpp" "cc")
+      '(("h" "cpp" "cc" "c") ("hpp" "cpp" "cc")
         ("cpp" "h" "hpp") ("c" "h") ("C" "H")
-        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")
-        ("pc h")))
+        ("H" "C" "CPP" "CC") ("cc" "h" "hpp")))
 
 
 
