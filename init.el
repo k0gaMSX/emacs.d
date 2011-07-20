@@ -492,7 +492,6 @@ save the pointer marker if tag is found"
 (defun my-c-mode ()
   (doxymacs-mode)
   (c-set-style "k&r")
-  (add-to-list 'ac-sources 'ac-source-semantic)
   (defadvice c-indent-line
     (before indent-and-forward-tempo activate)
     (when (my-inside-javadoc-comment)
