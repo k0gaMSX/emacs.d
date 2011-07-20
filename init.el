@@ -8,7 +8,6 @@
 ;; TODO: meterle acelerador de raton
 ;; TODO: Modify planner to allow change directory where is saved timeclock file
 ;; TODO: Configure ps-printer-name variable
-;; TODO: Put highlight-80+ & highline into mouse  menu
 ;; TODO: Solve problems with comments in C modes
 ;; TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
 
@@ -229,7 +228,6 @@
  '(flymake-errline ((t (:underline "red"))))
  '(flymake-warnline ((t (:underline "yellow"))))
  '(fringe ((((class color) (background light)) (:background "gray75"))))
- '(highlight-80+ ((((background light)) (:background "orange"))))
  '(highline-face ((t (:background "LightBlue1"))))
  '(hl-line ((t (:background "LightBlue1"))))
  '(paren-face-match ((t (:background "light grey"))))
