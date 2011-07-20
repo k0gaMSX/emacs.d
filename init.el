@@ -1121,24 +1121,6 @@ save the pointer marker if tag is found"
   (after advice-flyspell-check-buffer-on-start activate)
   (flyspell-buffer))
 
-;; ****************************************************************************
-;; User defined functions
-;;*****************************************************************************
-
-
-(defun ascii-table ()
-  "Print the ascii table. Based on a defun by Alex Schroeder
-  <asc@bsiag.com>"
-  (interactive)
-  (switch-to-buffer "*ASCII*")
-  (erase-buffer)
-  (insert (format "ASCII characters up to number %d.\n" 254))
-  (let ((i 0))
-    (while (< i 254)
-      (setq i (+ i 1))
-      (insert (format "%4d %02X %c\n" i i i))))
-  (goto-char (point-min)))
-
 
 
 
@@ -1207,7 +1189,7 @@ save the pointer marker if tag is found"
 
 (require 'w3m)
 (require 'google-define)
-
+(require 'ascii)
 
 
 ;;*****************************************************************************
