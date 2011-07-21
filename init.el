@@ -6,7 +6,6 @@
 ;; TODO: link fill-column and comment init-pos and end-pos
 ;; TODO: Document str-fill-spaces-c-comment defun
 ;; TODO: meterle acelerador de raton
-;; TODO: Modify planner to allow change directory where is saved timeclock file
 ;; TODO: Configure ps-printer-name variable
 ;; TODO: Solve problems with comments in C modes
 ;; TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
@@ -203,8 +202,6 @@
  '(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/srecode/templates/")))
  '(srecode-map-save-file "~/.emacs.d/cache/srecode-map")
  '(time-stamp-format time-format)
- '(timeclock-get-workday-function (quote askworkday))
- '(timeclock-workday 32400)
  '(tooltip-mode t)
  '(tramp-auto-save-directory "~/.emacs.d/cache")
  '(tramp-persistency-file-name "~/.emacs.d/cache/tramp")
@@ -962,51 +959,6 @@ from semantic"
   "Goto column, counting from column 0 at beginning of line."
   (interactive)
   (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
-
-
-
-;; ****************************************************************************
-;; timeclock & planner configuration
-;; ****************************************************************************
-
-(require 'timeclock)
-
-(global-set-key "\C-cti" 'timeclock-in)
-(global-set-key "\C-cto" 'timeclock-out)
-(global-set-key "\C-ctc" 'timeclock-change)
-(global-set-key "\C-ctr" 'timeclock-reread-log)
-(global-set-key "\C-ctu" 'timeclock-update-modeline)
-(global-set-key "\C-ctw" '(lambda ()
-                            (interactive)
-                            (message (timeclock-when-to-leave-string nil t))))
-
-(global-set-key "\C-cts" 'timeclock-status-string)
-(global-set-key "\C-ctv" 'timeclock-visit-timelog)
-(global-set-key "\C-ctl" 'timeclock-generate-report)
-(global-set-key "\C-ctt" 'timeclock-modeline-display)
-
-
-
-(defun askworkday ()
-  (interactive)
-  (* 60 60 (string-to-number (read-from-minibuffer "Numero de horas: "))))
-
-
-
-(setq planner-project "WikiPlanner")
-(setq muse-project-alist
-      '(("WikiPlanner"
-         ("~/plans"   ;; Or wherever you want your planner files to be
-          :default "index"
-          :major-mode planner-mode
-          :visit-link planner-visit-link))))
-
-(require 'planner)                      ;here the order is important!
-(require 'planner-timeclock)
-(require 'planner-timeclock-summary)
-
-
-
 
 
 
