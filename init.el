@@ -1019,6 +1019,8 @@ from semantic"
 ;; may help you see diffs clearly.
 ;;
 
+(defvar develock-mode-suspended nil)
+
 (add-hook
  'ediff-prepare-buffer-hook
  (lambda nil
