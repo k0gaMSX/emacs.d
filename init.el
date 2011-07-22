@@ -834,20 +834,12 @@ from semantic"
 
 (require 'mic-paren)
 (paren-activate)
+
 (require 'w3m-load)
 (require 'avoid)
 (mouse-avoidance-mode 'animate)
-;;(require 'tabbar)
-;;(tabbar-mode t)
-;;(require 'zenburn)
-;;(color-theme-classic)
-;;(zenburn)
 (server-start)
-;;(turn-on-auto-fill)
 (setq x-select-enable-clipboard t)
-
-
-
 
 
 
