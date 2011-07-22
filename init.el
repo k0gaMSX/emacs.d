@@ -844,10 +844,6 @@ from semantic"
 ;;(zenburn)
 (server-start)
 ;;(turn-on-auto-fill)
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
-(put 'scroll-left 'disabled nil)
 (setq x-select-enable-clipboard t)
 
 
@@ -1100,4 +1096,14 @@ from semantic"
 
 (when (file-exists-p "~/.emacs.d/local-post.el")
   (load-file "~/.emacs.d/local-post.el"))
+
+
+;;*****************************************************************************
+;; Enabling options
+;;*****************************************************************************
+
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+(put 'scroll-left 'disabled nil)
 (put 'scroll-left 'disabled nil)
