@@ -385,8 +385,6 @@ save the pointer marker if tag is found"
 
 
 (global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
-(global-set-key "\C-\M-c" 'semantic-ia-complete-symbol-menu)
-(global-set-key "\C-\M-t" 'senator-completion-menu-popup)
 (global-set-key [(control  <)] 'semantic-goto-definition)
 (global-set-key [(control  >)] 'semantic-pop-tag-mark)
 
@@ -933,20 +931,6 @@ from semantic"
   "Goto column, counting from column 0 at beginning of line."
   (interactive)
   (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
-
-
-
-;; ****************************************************************************
-;; hacking for text mode
-;; ****************************************************************************
-
-(cond ((eq window-system nil)
-       (global-semantic-stickyfunc-mode -1)
-       (global-set-key "\C-\M-c" 'semantic-ia-complete-symbol)
-       (menu-bar-mode nil)))
-
-
-
 
 
 ;; ****************************************************************************
