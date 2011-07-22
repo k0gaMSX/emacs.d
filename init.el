@@ -1052,9 +1052,6 @@ from semantic"
 (require 'second-sel)
 (require 'browse-kill-ring+)
 (browse-kill-ring-default-keybindings)
-(define-key browse-kill-ring-mode-map [(control tab)]
-  'browse-kill-ring-previous)
-
 
 
 ;;*****************************************************************************
