@@ -118,6 +118,8 @@
  '(ac-use-menu-map t)
  '(ac-user-dictionary-files (quote ("~/.emacs.d/autocomplete-dict")))
  '(auto-image-file-mode t)
+ '(auto-insert-mode t)
+ '(auto-insert-query nil)
  '(auto-save-list-file-prefix "~/.emacs.d/cache/auto-save-list/.saves-")
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/cache"))))
  '(browse-kill-ring-highlight-current-entry t)
