@@ -1041,9 +1041,11 @@ from semantic"
   (flyspell-buffer))
 
 (add-hook 'magit-log-edit-mode-hook (lambda nil
+                                      (auto-fill-mode)
                                       (flyspell-mode 1)))
 
 (add-hook 'log-edit-mode-hook (lambda nil
+                                (auto-fill-mode)
                                 (flyspell-mode 1)))
 
 
