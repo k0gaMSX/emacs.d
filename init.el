@@ -8,8 +8,6 @@
 ;; TODO: meterle acelerador de raton
 ;; TODO: Configure ps-printer-name variable
 ;; TODO: Solve problems with comments in C modes
-;; TODO: Allow choose vc-status (cvs-status, svn-status, magit-status)
-
 
 
 (setq warning-suppress-types nil)       ;Workaround due to 23.2 bug
@@ -1063,22 +1061,20 @@ from semantic"
 ;; Control version
 ;;*****************************************************************************
 
-(require 'pcvs)
-(require 'psvn)
 (require 'vc)
-(require 'flyspell)
-(require 'git)
-(require 'magit)
 
-;;TODO: implement vc-status for all scm
-(global-set-key '[ (control x ) (v) (t) ] 'magit-status)
-
-(add-hook 'magit-log-edit-mode-hook (lambda nil
-                                      (flyspell-mode 1)))
-
-(add-hook 'log-edit-mode-hook (lambda nil
-                                (flyspell-mode 1)))
-
+(global-set-key '[ (control x ) (v) (t) ]
+                (lambda ()
+                  (interactive)
+                  (cond ((locate-dominating-file default-directory ".git")
+                         (require 'magit)
+                         (magit-status default-directory))
+                        ((locate-dominating-file default-directory ".CVS")
+                         (require 'pcvs)
+                         (cvs-status default-directory nil))
+                        ((locate-dominating-file default-directory ".svn")
+                         (require 'psvn)
+                         (svn-status default-directory)))))
 
 ;;*****************************************************************************
 ;; flyspell
@@ -1090,6 +1086,12 @@ from semantic"
 (defadvice flyspell-mode
   (after advice-flyspell-check-buffer-on-start activate)
   (flyspell-buffer))
+
+(add-hook 'magit-log-edit-mode-hook (lambda nil
+                                      (flyspell-mode 1)))
+
+(add-hook 'log-edit-mode-hook (lambda nil
+                                (flyspell-mode 1)))
 
 
 
