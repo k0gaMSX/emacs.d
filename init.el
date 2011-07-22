@@ -3,8 +3,6 @@
 ;; TODO: Modify  ECB in maximized windos  behaviour. When an item  of the tree
 ;;      windows  is selected  I want  the ECB  windos stay  selected  and not
 ;;      changes to the source windows
-;; TODO: link fill-column and comment init-pos and end-pos
-;; TODO: Document str-fill-spaces-c-comment defun
 ;; TODO: meterle acelerador de raton
 ;; TODO: Configure ps-printer-name variable
 ;; TODO: Solve problems with comments in C modes
@@ -589,21 +587,6 @@ from semantic"
 
 
 
-
-
-(defun str-fill-spaces-c-comment (&optional str init-pos end-pos)
-  "Return a string which fill right part of the C comment"
-  (when (not (stringp str)) (setq str ""))
-  (when (not init-pos) (setq init-pos (current-column)))
-  (when (not end-pos) (setq end-pos fill-column))
-  (let ((cont (- end-pos init-pos 2)))
-    (while (> cont 0)
-      (setq cont (- cont 1))
-      (setq str (concat str " ")))
-    (concat str "*/")))
-
-
-
 (defun my-c-comment-function ()
   "Comment a region in c-mode"
   (interactive)
@@ -626,19 +609,12 @@ from semantic"
       (while (< (point) (point-max))
         (move-to-column 0)
         (insert "/*")
-        (end-of-line)
-        (insert (str-fill-spaces-c-comment))
+        (if (< fill-column
+               (- (line-end-position) (line-beginning-position)))
+            (end-of-line)
+          (move-to-column fill-column t))
+        (insert "*/")
         (forward-line 1)))))
-
-
-
-
-
-
-
-
-
-
 
 
 
