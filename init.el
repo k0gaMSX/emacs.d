@@ -478,16 +478,6 @@ save the pointer marker if tag is found"
 
 
 
-(defun my-javadoc-return ()
-  "Advanced C-m for Javadoc multiline comments.
-   Inserts `*' at the beggining of the new line if
-   unless return was pressed outside the comment"
-  (interactive)
-  (newline-and-indent)
-  (when (my-inside-javadoc-comment) (insert "* ")))
-
-
-
 (defun my-doxymacs-font-lock-hook ()
   (if (or (eq major-mode 'c-mode)
           (eq major-mode 'c++-mode))
@@ -559,14 +549,15 @@ from semantic"
                             auto-mode-alist))
 
 
+(defadvice c-indent-line
+  (before indent-and-forward-tempo activate)
+  (when (my-inside-javadoc-comment)
+    (tempo-forward-mark)))
+
+
 (defun my-c-mode ()
   (doxymacs-mode)
   (c-set-style "k&r")
-  (defadvice c-indent-line
-    (before indent-and-forward-tempo activate)
-    (when (my-inside-javadoc-comment)
-      (tempo-forward-mark)))
-  (local-set-key [(return )]  'my-javadoc-return)
   (local-set-key "\C-cc" 'my-c-comment-function)
   (eldoc-mode)
   (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
