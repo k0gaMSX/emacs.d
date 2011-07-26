@@ -1,11 +1,13 @@
-;; Copyright (C) 2000, 2001, 2002 Vinicius Jose Latorre
+;;; highline.el --- minor mode to highlight current line in buffer
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Copyright (C) 2000, 2001, 2002, 2006 Vinicius Jose Latorre
+
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: faces, frames, editing
-;; Time-stamp: <2002/12/17 14:01:52 vinicius>
+;; Time-stamp: <2006/09/13 23:38:49 vinicius>
 ;; Version: 4.2
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
+;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is *NOT* (yet?) part of GNU Emacs.
 
@@ -19,10 +21,9 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; You should have received a copy of the GNU General Public License along with
+;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 

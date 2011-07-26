@@ -443,7 +443,7 @@ save the pointer marker if tag is found"
             (expand-file-name
              (concat "#%" (buffer-name) "#")))))
 
-(require 'highline)
+(require 'highline-autoloads)
 (require 'tramp)
 (add-hook 'dired-mode-hook (lambda nil
                              (highline-local-mode t)))
