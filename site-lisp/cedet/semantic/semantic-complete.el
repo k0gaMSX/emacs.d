@@ -926,7 +926,7 @@ of a completion."
 
 (defmethod semantic-collector-next-action
   ((obj semantic-collector-abstract) partial)
-  "What should we do next?  OBJ can predict a next good action.
+  "What should we do next?  OBJ can be used to determine the next action.
 PARTIAL indicates if we are doing a partial completion."
   (if (and (slot-boundp obj 'last-completion)
 	   (string= (semantic-completion-text) (oref obj last-completion)))
@@ -982,21 +982,37 @@ Output must be in semanticdb Find result format."
   "Calculate completions for prefix as setup for other queries."
   (let* ((case-fold-search semantic-case-fold)
 	 (same-prefix-p (semantic-collector-last-prefix= obj prefix))
+	 (last-prefix (and (slot-boundp obj 'last-prefix)
+			   (oref obj last-prefix)))
 	 (completionlist
-	  (if (or same-prefix-p
-		  (and (slot-boundp obj 'last-prefix)
-		       (eq (compare-strings (oref obj last-prefix) 0 nil
-					    prefix 0 (length prefix))
-			   t)))
-	      ;; New prefix is subset of old prefix
-	      (oref obj last-all-completions)
-	    (semantic-collector-get-cache obj)))
+	  (cond ((or same-prefix-p
+		     (and last-prefix (eq (compare-strings
+					   last-prefix 0 nil
+					   prefix 0 (length last-prefix)) t)))
+		 ;; We have the same prefix, or last-prefix is a
+		 ;; substring of the of new prefix, in which case we are
+		 ;; refining our symbol so just re-use cache.
+		 (oref obj last-all-completions))
+		((and last-prefix
+		      (> (length prefix) 1)
+		      (eq (compare-strings
+			   prefix 0 nil
+			   last-prefix 0 (length prefix)) t))
+		   ;; The new prefix is a substring of the old
+		   ;; prefix, and it's longer than one character.
+		   ;; Perform a full search to pull in additional
+		   ;; matches. 
+		 (let ((context (semantic-analyze-current-context (point))))
+		   (setq semantic-completion-collector-engine
+			 (semantic-collector-analyze-completions
+			  "inline" :buffer (oref context buffer) :context context))
+		   (setq obj semantic-completion-collector-engine))
+		 (semantic-collector-get-cache obj))))
 	 ;; Get the result
 	 (answer (if same-prefix-p
 		     completionlist
 		   (semantic-collector-calculate-completions-raw
-		    obj prefix completionlist))
-		 )
+		    obj prefix completionlist)))
 	 (completion nil)
 	 (complete-not-uniq nil)
 	 )
@@ -1039,7 +1055,7 @@ Output must be in semanticdb Find result format."
 
 (defmethod semantic-collector-try-completion-whitespace
   ((obj semantic-collector-abstract) prefix)
-  "For OBJ, do whatepsace completion based on PREFIX.
+  "For OBJ, do whitespace completion based on PREFIX.
 This implies that if there are two completions, one matching
 the test \"preifx\\>\", and one not, the one matching the full
 word version of PREFIX will be chosen, and that text returned.
@@ -1169,7 +1185,7 @@ NEWCACHE is the new tag table, but we ignore it."
   (semantic-collector-buffer-abstract)
   ()
   "Completion engine for tags in the current buffer.
-When searching for a tag, uses semantic  deep searche functions.
+When searching for a tag, uses semantic deep search functions.
 Basics search only in the current buffer.")
 
 (defmethod semantic-collector-calculate-cache
@@ -1312,8 +1328,9 @@ a collector, and tracking tables of completion to display."
 (defmethod semantic-displayor-next-action ((obj semantic-displayor-abstract))
   "The next action to take on the minibuffer related to display."
   (if (and (slot-boundp obj 'last-prefix)
-	   (string= (oref obj last-prefix) (semantic-completion-text))
-	   (eq last-command this-command))
+	   (or (eq this-command 'semantic-complete-inline-TAB)
+	       (and (string= (oref obj last-prefix) (semantic-completion-text))
+		    (eq last-command this-command))))
       'scroll
     'display))
 
@@ -1631,7 +1648,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	    (oset obj typing-count (1+ typing-count)))
 	;; At this point, we know we have too many items.
 	;; Lets be brave, and truncate l
-	(setcdr (nthcdr (oref obj max-tags) l) nil)
+	(setcdr (nthcdr (1- (oref obj max-tags)) l) nil)
 	(setq msg (mapconcat 'identity l "\n"))
 	(cond
 	 ((= force-show -1)
@@ -1656,8 +1673,10 @@ Display mechanism using tooltip for a list of possible completions.")
   "Return the location of POINT as positioned on the selected frame.
 Return a cons cell (X . Y)"
   (let* ((frame (selected-frame))
-	 (left (frame-parameter frame 'left))
-	 (top (frame-parameter frame 'top))
+	 (left (or (car-safe (cdr-safe (frame-parameter frame 'left)))
+		   (frame-parameter frame 'left)))
+         (top (or (car-safe (cdr-safe (frame-parameter frame 'top)))
+		  (frame-parameter frame 'top)))
 	 (point-pix-pos (posn-x-y (posn-at-point)))
 	 (edges (window-inside-pixel-edges (selected-window))))
     (cons (+ (car point-pix-pos) (car edges) left)
