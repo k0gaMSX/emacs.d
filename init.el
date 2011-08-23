@@ -124,6 +124,7 @@
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/cache"))))
  '(browse-kill-ring-highlight-current-entry t)
  '(browse-kill-ring-highlight-inserted-item t)
+ '(browse-url-browser-function (quote w3m))
  '(column-number-mode t)
  '(dabbrev-case-replace nil)
  '(develock-max-column-plist (quote (emacs-lisp-mode 80 lisp-interaction-mode w change-log-mode t texinfo-mode t c-mode 80 c++-mode 80 java-mode 80 jde-mode 80 html-mode 80 html-helper-mode 80 cperl-mode 80 perl-mode 80 mail-mode t message-mode t cmail-mail-mode t tcl-mode 80 ruby-mode 80)))
