@@ -1038,7 +1038,7 @@ from semantic"
                                 (auto-fill-mode)
                                 (flyspell-mode 1)))
 
-
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 (require 'erc-spelling)
 (add-hook 'erc-mode-hook 'erc-spelling-mode)
