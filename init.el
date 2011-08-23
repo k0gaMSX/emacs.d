@@ -557,7 +557,7 @@ from semantic"
 
 (defun my-c-mode ()
   (doxymacs-mode)
-  (c-set-style "k&r")
+  (c-set-style "linux")
   (local-set-key "\C-cc" 'my-c-comment-function)
   (eldoc-mode)
   (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
