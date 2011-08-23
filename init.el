@@ -278,7 +278,7 @@ errors and/or warnings."
          (menu-data
           (flymake-make-err-menu-data line-no line-err-info-list)))
     (if menu-data
-        (popup-tip (mapconcat '(lambda (e) (nth 0 e))
+        (popup-tip (mapconcat #'(lambda (e) (nth 0 e))
                               (nth 1 menu-data)
                               "\n")))))
 
