@@ -1029,11 +1029,6 @@ from semantic"
 
 (require 'flyspell)
 
-
-(defadvice flyspell-mode
-  (after advice-flyspell-check-buffer-on-start activate)
-  (flyspell-buffer))
-
 (add-hook 'magit-log-edit-mode-hook (lambda nil
                                       (auto-fill-mode)
                                       (flyspell-mode 1)))
