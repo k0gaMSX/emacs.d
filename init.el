@@ -294,7 +294,10 @@ showed in a popup."
         'my-flymake-display-err-popup-el-for-current-line post-command-hook)))
 
 
-(add-hook 'find-file-hook 'flymake-find-file-hook)
+(add-hook 'find-file-hook
+          '(lambda ()
+             (when (locate-dominating-file default-directory "proj.el")
+               (flymake-find-file-hook))))
 
 ;; ****************************************************************************
 ;; ECB
