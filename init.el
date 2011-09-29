@@ -182,7 +182,6 @@
  '(image-dired-dir "~/.emacs.d/cache/image-dired/")
  '(image-dired-gallery-dir "~/.emacs.d/cache/image-dired/.image-dired_gallery")
  '(image-dired-temp-image-file "~/.emacs.d/cache/image-dired/.image-dired_temp")
- '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(line-number-mode t)
  '(make-backup-files nil)
