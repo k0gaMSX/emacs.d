@@ -503,7 +503,7 @@ save the pointer marker if tag is found"
 (defvar my-auto-complete-clangp nil
   "Flag to indicate clang is present")
 
-(when (file-executable-p ac-clang-executable)
+(when (and ac-clang-executable (file-executable-p ac-clang-executable))
   (setq my-auto-complete-clangp t))
 
 (ac-config-default)
