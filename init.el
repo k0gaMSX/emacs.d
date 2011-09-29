@@ -1046,9 +1046,7 @@ from semantic"
 
 ;; There is some other things in sunrise directory
 
-(require 'sunrise-commander)
-(require 'sunrise-x-buttons)            ;only necessary if you want the  buttons
-(require 'sunrise-x-loop)         ;allow execute in background using C-u prefix
+(require 'sunrise-commander-autoloads)
 
 (global-set-key '[(control c) (x)] 'sunrise)
 (global-set-key '[(control c) (X)] 'sunrise-cd)

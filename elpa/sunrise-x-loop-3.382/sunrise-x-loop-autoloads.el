@@ -3,15 +3,15 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "sunrise-x-loop" "sunrise-x-loop.el" (20014
-;;;;;;  58366))
+;;;### (autoloads nil "sunrise-x-loop" "sunrise-x-loop.el" (20090
+;;;;;;  64248))
 ;;; Generated autoloads from sunrise-x-loop.el
  (require 'sunrise-x-loop)
 
 ;;;***
 
-;;;### (autoloads nil nil ("sunrise-x-loop-pkg.el") (20014 58366
-;;;;;;  813766))
+;;;### (autoloads nil nil ("sunrise-x-loop-pkg.el") (20090 64248
+;;;;;;  84781))
 
 ;;;***
 

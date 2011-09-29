@@ -4,7 +4,7 @@
 
 
 ;;;### (autoloads (sr-dired sunrise-cd sunrise) "sunrise-commander"
-;;;;;;  "sunrise-commander.el" (20014 58362))
+;;;;;;  "sunrise-commander.el" (20090 64245))
 ;;; Generated autoloads from sunrise-commander.el
 
 (autoload 'sunrise "sunrise-commander" "\
@@ -27,8 +27,8 @@ Visit the given directory in `sr-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("sunrise-commander-pkg.el") (20014 58363
-;;;;;;  12230))
+;;;### (autoloads nil nil ("sunrise-commander-pkg.el") (20090 64245
+;;;;;;  317532))
 
 ;;;***
 
