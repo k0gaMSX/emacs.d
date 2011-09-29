@@ -810,16 +810,6 @@ from semantic"
                                    (highline-local-mode t)))
 
 
-;; Close the compilation window if  there was no error at all.
-(setq compilation-exit-message-function
-      '(lambda (status code msg)
-         (when (and (eq status 'exit) (zerop code))
-           (bury-buffer)        ;; then bury the *compilation* buffer,
-           (delete-window      ;; so that C-x b doesn't go there and delete
-            (get-buffer-window                        ;;the *compilation* window
-             (get-buffer "*compilation*"))))
-         (cons msg code)))
-
 ;;Interpretate ansi sequences
 
 (require 'ansi-color)
