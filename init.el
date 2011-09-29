@@ -118,6 +118,7 @@
  '(ac-use-menu-map t)
  '(ac-user-dictionary-files (quote ("~/.emacs.d/autocomplete-dict")))
  '(auto-image-file-mode t)
+ '(auto-insert-directory "~/.emacs.d/auto-insert/")
  '(auto-insert-mode t)
  '(auto-insert-query nil)
  '(auto-save-list-file-prefix "~/.emacs.d/cache/auto-save-list/.saves-")
@@ -844,6 +845,13 @@ from semantic"
 (server-start)
 (setq x-select-enable-clipboard t)
 
+
+;; ****************************************************************************
+;; auto insert
+;; ****************************************************************************
+
+(define-auto-insert "\.ac" "configure.ac")
+(define-auto-insert "\.in" "Makefile.in")
 
 
 ;; ****************************************************************************
