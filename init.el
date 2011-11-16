@@ -219,14 +219,13 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Anonymous Pro"))))
+ '(default ((t (:stipple nil :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "unknown" :family "Anonymous Pro"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(flymake-errline ((t (:underline "red"))))
  '(flymake-warnline ((t (:underline "yellow"))))
  '(fringe ((((class color) (background light)) (:background "gray75"))))
- '(highline-face ((t (:background "LightBlue1"))))
- '(hl-line ((t (:background "LightBlue1"))))
- '(paren-face-match ((t (:background "light grey"))))
+ '(highline-face ((t (:inherit hl-line))))
+ '(paren-face-match ((t (:background "gray75"))))
  '(tooltip ((((class color)) (:inherit variable-pitch :background "lightyellow" :foreground "black" :family "Anonymous Pro")))))
 
 
@@ -1068,7 +1067,11 @@ from semantic"
 (require 'w3m)
 (require 'google-define)
 (require 'ascii)
+(require 'zenburn)
 
+(unless (zenburn-format-spec-works-p)
+  (zenburn-define-format-spec))
+(zenburn)
 
 ;;*****************************************************************************
 ;; ELPA
