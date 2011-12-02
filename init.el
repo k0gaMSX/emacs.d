@@ -345,7 +345,12 @@ save the pointer marker if tag is found"
   (condition-case err
       (progn
 	(ring-insert semantic-tags-location-ring (point-marker))
-	(semantic-ia-fast-jump point))
+	(let* ((ctxt (semantic-analyze-current-context point))
+	       (pf (and ctxt (reverse (oref ctxt prefix))))
+	       (first (car pf)))
+	  (if (semantic-tag-p first)
+	      (semantic-ia--fast-jump-helper first)
+	    (semantic-complete-jump))))
     (error
      ;;if not found remove the tag saved in the ring
      (set-marker (ring-remove semantic-tags-location-ring 0) nil nil)
