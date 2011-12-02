@@ -327,8 +327,8 @@ Argument MENU-DEF specifies the menu being created."
 This function is designed to be used by `ede-configuration-forms-menu'
 but can also be used interactively."
   (interactive
-   (list (let ((proj (ede-current-project))
-	       (configs (oref proj configurations)))
+   (list (let* ((proj (ede-current-project))
+		(configs (oref proj configurations)))
 	   (completing-read "New configuration: "
 			    configs nil t
 			    (oref proj configuration-default)))))
@@ -474,7 +474,7 @@ ONOFF indicates enabling or disabling the mode."
   (let ((b (buffer-list)))
     (while b
       (when (buffer-file-name (car b))
-	(save-excursion
+	(save-current-buffer
 	  (set-buffer (car b))
 	  ;; Reset all state variables
 	  (setq ede-object nil
@@ -501,12 +501,16 @@ If ARG is negative, disable.  Toggle otherwise."
 	  (add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
 	  (add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
 	  (add-hook 'find-file-hooks 'ede-turn-on-hook)
-	  (add-hook 'dired-mode-hook 'ede-turn-on-hook))
+	  (add-hook 'dired-mode-hook 'ede-turn-on-hook)
+
+	  (add-hook 'cedet-m3-menu-do-hooks 'ede-m3-ede-items nil))
       (remove-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
       (remove-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
       (remove-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
       (remove-hook 'find-file-hooks 'ede-turn-on-hook)
-      (remove-hook 'dired-mode-hook 'ede-turn-on-hook))
+      (remove-hook 'dired-mode-hook 'ede-turn-on-hook)
+
+      (remove-hook 'cedet-m3-menu-do-hooks 'ede-m3-ede-items))
     (ede-reset-all-buffers arg)))
 
 (defvar ede-ignored-file-alist
