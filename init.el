@@ -837,7 +837,9 @@ from semantic"
 (require 'w3m-load)
 (require 'avoid)
 (mouse-avoidance-mode 'animate)
-(server-start)
+
+(require 'server)
+(unless (server-running-p)  (server-start))
 (setq x-select-enable-clipboard t)
 
 
