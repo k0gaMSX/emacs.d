@@ -845,8 +845,8 @@ from semantic"
 ;; auto insert
 ;; ****************************************************************************
 
-(define-auto-insert "\.ac" "configure.ac")
-(define-auto-insert "\.in" "Makefile.in")
+(define-auto-insert "\.ac$" "configure.ac")
+(define-auto-insert "\.in$" "Makefile.in")
 
 
 ;; ****************************************************************************
