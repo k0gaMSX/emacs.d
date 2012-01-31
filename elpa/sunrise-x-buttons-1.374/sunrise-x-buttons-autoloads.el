@@ -4,14 +4,14 @@
 
 
 ;;;### (autoloads nil "sunrise-x-buttons" "sunrise-x-buttons.el"
-;;;;;;  (20014 58368))
+;;;;;;  (20090 65317))
 ;;; Generated autoloads from sunrise-x-buttons.el
  (require 'sunrise-x-buttons)
 
 ;;;***
 
-;;;### (autoloads nil nil ("sunrise-x-buttons-pkg.el") (20014 58368
-;;;;;;  278516))
+;;;### (autoloads nil nil ("sunrise-x-buttons-pkg.el") (20090 65318
+;;;;;;  24615))
 
 ;;;***
 
