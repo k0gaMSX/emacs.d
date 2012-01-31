@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: #include <limits.h>
+# key: limitsh
+# contributor: Roberto Vargas <k0ga@shike2.com>
+# --
+#include <limits.h>

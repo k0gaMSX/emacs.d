@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: #include <time.h>
+# key: timeh
+# contributor: Roberto Vargas <k0ga@shike2.com>
+# --
+#include <time.h>
