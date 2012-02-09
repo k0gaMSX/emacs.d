@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: #include <locale.h>
+# key: localeh
+# contributor: Roberto Vargas <k0ga@shike2.com>
+# --
+#include <locale.h>
