@@ -186,7 +186,6 @@
  '(make-backup-files nil)
  '(muse-project-alist (quote (("WikiPlanner" ("~/plans" :default "index" :major-mode planner-mode :visit-link planner-visit-link)))))
  '(paren-mode (quote sexp) nil (paren))
- '(paren-sexp-mode (quote match))
  '(password-cache-expiry 600)
  '(query-replace-highlight t)
  '(require-final-newline t)
