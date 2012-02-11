@@ -49,15 +49,8 @@ errors and/or warnings."
 			      (nth 1 menu-data)
 			      "\n")))))
 
-
-(defadvice flymake-mode (before post-command-stuff activate compile)
-  "Add functionality to the post command hook so that if the
-cursor is sitting on a flymake error the error information is
-showed in a popup."
-  (set (make-local-variable 'post-command-hook)
-       (cons
-	'my-flymake-display-err-popup-el-for-current-line post-command-hook)))
-
+(global-set-key '[ (meta \?) ]
+		'my-flymake-display-err-popup-el-for-current-line)
 
 (add-hook 'find-file-hook
 	  '(lambda ()
