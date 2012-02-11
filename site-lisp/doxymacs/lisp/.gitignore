@@ -2,3 +2,4 @@
 CVS/
 .cvsignore
 doxymacs.el
+elc-stamp
