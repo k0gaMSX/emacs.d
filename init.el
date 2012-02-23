@@ -111,6 +111,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ac-auto-start 3)
+ '(ac-clang-flags (quote ("-I/usr/include")))
  '(ac-comphist-file "~/.emacs.d/cache/ac-comphist.dat")
  '(ac-dictionary-directories (quote ("~/.emacs.d/site-lisp/auto-complete//ac-dict")))
  '(ac-dwim t)
@@ -217,7 +218,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:stipple nil :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "unknown" :family "Anonymous Pro"))))
+ '(default ((t (:inherit nil :stipple nil :background "#3f3f3f" :foreground "#dcdccc" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 101 :width normal :foundry "unknown" :family "Anonymous Pro"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(flymake-errline ((t (:underline "red"))))
  '(flymake-warnline ((t (:underline "yellow"))))
