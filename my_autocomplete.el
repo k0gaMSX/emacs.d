@@ -29,6 +29,27 @@ from semantic"
 		     ac-source-semantic-raw))))
 
 
+(defun my-ede-c-get-includes ()
+  "return a list of directories for including files in c/c++
+project"
+  (when (and
+	 (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode))
+	 ede-object)
+    (append (ede-system-include-path ede-object)
+	    semantic-dependency-include-path
+	    semantic-dependency-system-include-path)))
+
+(defun my-clang-ede-include-flags ()
+  "Returns flags for include directories using ede"
+  (let ((dirs (my-ede-c-get-includes)))
+    (mapcar #'(lambda (dir)
+		(if dir
+		    (concat "-I" dir " ")
+		  " ")) dirs)))
+
+(setq ac-clang-flags-function 'my-clang-ede-include-flags)
+
+
 (global-set-key [(control return)] 'my-sense-completion)
 (define-key ac-menu-map "\C-n" 'ac-next)
 (define-key ac-menu-map "\C-p" 'ac-previous)
