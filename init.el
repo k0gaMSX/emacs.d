@@ -111,6 +111,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ac-auto-start 3)
+ '(ac-clang-flags (quote ("-I/usr/include")))
  '(ac-comphist-file "~/.emacs.d/cache/ac-comphist.dat")
  '(ac-dictionary-directories (quote ("~/.emacs.d/site-lisp/auto-complete//ac-dict")))
  '(ac-dwim t)
@@ -184,7 +185,6 @@
  '(inhibit-startup-screen t)
  '(line-number-mode t)
  '(make-backup-files nil)
- '(muse-project-alist (quote (("WikiPlanner" ("~/plans" :default "index" :major-mode planner-mode :visit-link planner-visit-link)))))
  '(paren-mode (quote sexp) nil (paren))
  '(password-cache-expiry 600)
  '(query-replace-highlight t)
@@ -218,7 +218,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:stipple nil :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 113 :width normal :foundry "unknown" :family "Anonymous Pro"))))
+ '(default ((t (:inherit nil :stipple nil :background "#3f3f3f" :foreground "#dcdccc" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 101 :width normal :foundry "unknown" :family "Anonymous Pro"))))
  '(ecb-tag-header-face ((((class color) (background dark)) (:background "SeaGreen4"))))
  '(flymake-errline ((t (:underline "red"))))
  '(flymake-warnline ((t (:underline "yellow"))))
@@ -228,180 +228,19 @@
  '(tooltip ((((class color)) (:inherit variable-pitch :background "lightyellow" :foreground "black" :family "Anonymous Pro")))))
 
 
-
-
-;; ***************************************************************************
-;; Flymake
-;; ***************************************************************************
-
-(require 'flymake)
-(require 'rfringe)
-
-
-(defun flymake-create-temp-intemp (file-name prefix)
-  "Return file name in temporary directory for checking FILE-NAME.
-This is a replacement for `flymake-create-temp-inplace'. The
-difference is that it gives a file name in
-`temporary-file-directory' instead of the same directory as
-FILE-NAME.
-
-For the use of PREFIX see that function.
-
-Note that not making the temporary file in another directory
-\(like here) will not if the file you are checking depends on
-relative paths to other files \(for the type of checks flymake
-makes)."
-  (unless (stringp file-name)
-    (error "Invalid file-name"))
-  (or prefix
-      (setq prefix "flymake"))
-  (let* ((name (concat
-		(file-name-nondirectory
-		 (file-name-sans-extension file-name))
-		"_" prefix))
-	 (ext  (concat "." (file-name-extension file-name)))
-	 (temp-name (make-temp-file name nil ext)))
-    (flymake-log 3 "create-temp-intemp: file=%s temp=%s" file-name temp-name)
-    temp-name))
-
-
-(defun my-flymake-display-err-popup-el-for-current-line ()
-  "Display a menu with errors/warnings for current line if it has
-errors and/or warnings."
-  (interactive)
-  (let* ((line-no
-	  (flymake-current-line-no))
-	 (line-err-info-list
-	  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-	 (menu-data
-	  (flymake-make-err-menu-data line-no line-err-info-list)))
-    (if menu-data
-	(popup-tip (mapconcat #'(lambda (e) (nth 0 e))
-			      (nth 1 menu-data)
-			      "\n")))))
-
-
-(defadvice flymake-mode (before post-command-stuff activate compile)
-  "Add functionality to the post command hook so that if the
-cursor is sitting on a flymake error the error information is
-showed in a popup."
-  (set (make-local-variable 'post-command-hook)
-       (cons
-	'my-flymake-display-err-popup-el-for-current-line post-command-hook)))
-
-
-(add-hook 'find-file-hook
-	  '(lambda ()
-	     (when (locate-dominating-file default-directory "proj.el")
-	       (flymake-find-file-hook))))
-
-;; ****************************************************************************
-;; ECB
-;; ****************************************************************************
-
-(require 'ecb)
-(ecb-winman-winring-enable-support)	;Must be called before of requiring
-					;winring
-
-(global-set-key [f2] 'ecb-toggle-ecb-windows)
-(global-set-key [f3] '(lambda()
-			(interactive)
-			(iy/winring-jump-or-create "ECB")))
-
-
-
-
-
-;; ****************************************************************************
-;; CEDET configuration.
-;; ****************************************************************************
-
-
-
-(require 'semantic-load)
-(require 'semanticdb-system)
-(require 'semantic-gcc)
-(require 'semantic-ia)
-(require 'ede)
-(require 'ede-locate)
-
-(semantic-gcc-setup)
-(setq semantic-load-turn-everything-on t)
-(semantic-load-enable-excessive-code-helpers)
-(semanticdb-load-system-caches)
-(global-ede-mode 1)
-(global-semantic-idle-completions-mode nil) ;This mode doesn't work very well
-
-
-(defvar semantic-tags-location-ring (make-ring 20))
-
-
-
-(defun semantic-goto-definition (point)
-  "Goto definition using semantic-ia-fast-jump
-save the pointer marker if tag is found"
-  (interactive "d")
-  (condition-case err
-      (progn
-	(ring-insert semantic-tags-location-ring (point-marker))
-	(let* ((ctxt (semantic-analyze-current-context point))
-	       (pf (and ctxt (reverse (oref ctxt prefix))))
-	       (first (car pf)))
-	  (if (semantic-tag-p first)
-	      (semantic-ia--fast-jump-helper first)
-	    (semantic-complete-jump))))
-    (error
-     ;;if not found remove the tag saved in the ring
-     (set-marker (ring-remove semantic-tags-location-ring 0) nil nil)
-     (signal (car err) (cdr err)))))
-
-
-(defun semantic-pop-tag-mark ()
-  "popup the tag save by semantic-goto-definition"
-  (interactive)
-  (if (ring-empty-p semantic-tags-location-ring)
-      (message "%s" "No more tags available")
-    (let* ((marker (ring-remove semantic-tags-location-ring 0))
-	      (buff (marker-buffer marker))
-		 (pos (marker-position marker)))
-      (if (not buff)
-	    (message "Buffer has been deleted")
-	(switch-to-buffer buff)
-	(goto-char pos)))))
-
-(when (cedet-gnu-global-version-check t)
-  (require 'semanticdb-global)
-  (add-to-list 'ede-locate-setup-options 'ede-locate-global)
-  (semanticdb-enable-gnu-global-databases 'c-mode)
-  (semanticdb-enable-gnu-global-databases 'c++-mode))
-
-(when (cedet-cscope-version-check t)
-  (require 'semanticdb-cscope)
-  (semanticdb-enable-cscope-databases)
-  (add-to-list 'ede-locate-setup-options 'ede-locate-cscope))
-
-(when (cedet-idutils-version-check t)
-  (add-to-list 'ede-locate-setup-options 'ede-locate-idutils))
-
-(require 'semanticdb-ectag)
-(when (semantic-ectag-version)
-  (semantic-load-enable-primary-exuberent-ctags-support)
-  (semantic-load-enable-secondary-exuberent-ctags-support))
-
-(when (executable-find "locate")
-  (add-to-list 'ede-locate-setup-options 'ede-locate-locate))
-
-
-
-(global-set-key "\C-\M-x" 'semantic-analyze-proto-impl-toggle)
-(global-set-key [(control  <)] 'semantic-goto-definition)
-(global-set-key [(control  >)] 'semantic-pop-tag-mark)
-
-;;Customization of srecode. I will back over srecode some day
-;;'(srecode-map-load-path (quote ("~/.emacs.d/site-lisp/cedet/cogre/templates/"
-;; "~/.emacs.d/site-lisp/cedet/srecode/templates/"
-;; "~/.emacs.d/srecode/")))
-;; '(srecode-map-save-file "~/emacs.d/cache/srecode-map")
+(let ((default-directory user-emacs-directory))
+  (load-file "my_flymake.el")
+  (load-file "my_ecb.el")
+  (load-file "my_cedet.el")
+  (load-file "my_doxymacs.el")
+  (load-file "my_autocomplete.el")
+  (load-file "my_c_mode.el")
+  (load-file "my_gud.el")
+  (load-file "my_lisp.el")
+  (load-file "my_yasnippet.el")
+  (load-file "my_jump.el")
+  (load-file "my_window.el")
+  (load-file "my_ediff.el"))
 
 
 
@@ -455,164 +294,12 @@ save the pointer marker if tag is found"
 (add-hook 'dired-mode-hook (lambda nil
 			     (highline-local-mode t)))
 
-;; ****************************************************************************
-;; doxymacs
-;; ****************************************************************************
-
-
-(require 'doxymacs)
-(require 'tempo)
 
 
 
-(defun my-inside-javadoc-comment ()
-  "Return t if the cursor is inside a comment."
-  (let* ((last (point))
-	 (is-inside
-	  (if (search-backward "*/" nil t)
-	      ;; there are some comment endings - search forward
-	      (if (search-forward "/**" last t)
-		  't
-		'nil)
-
-	    ;; it's the only comment - search backward
-	    (goto-char last)
-	    (if (search-backward "/**" nil t)
-		't
-	      'nil))))
-    (goto-char last)
-    is-inside))
 
 
 
-(defun my-doxymacs-font-lock-hook ()
-  (if (or (eq major-mode 'c-mode)
-	  (eq major-mode 'c++-mode))
-      (doxymacs-font-lock)))
-
-(add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
-
-
-
-;; ****************************************************************************
-;; Autocomplete modes
-;; ****************************************************************************
-
-
-(require 'auto-complete)
-(require 'auto-complete-config)
-(require 'auto-complete-clang)
-(require 'cc-mode)
-
-(defvar my-auto-complete-clangp nil
-  "Flag to indicate clang is present")
-
-(when (and ac-clang-executable (file-executable-p ac-clang-executable))
-  (setq my-auto-complete-clangp t))
-
-(ac-config-default)
-(global-auto-complete-mode t)
-
-
-(defun my-sense-completion ()
-  "Performs a auto completions based in sense information
-taken from clang if it is installed, or in other case taken
-from semantic"
-  (interactive)
-  (if (and my-auto-complete-clangp c-buffer-is-cc-mode)
-      (auto-complete '(ac-source-clang))
-    (auto-complete '(ac-source-semantic
-		     ac-source-semantic-raw))))
-
-
-(global-set-key [(control return)] 'my-sense-completion)
-(define-key ac-menu-map "\C-n" 'ac-next)
-(define-key ac-menu-map "\C-p" 'ac-previous)
-(ac-flyspell-workaround)
-
-
-
-;; ****************************************************************************
-;; C modes
-;; ****************************************************************************
-
-
-(require 'cc-mode)
-(require 'doxymacs)
-(require 'filladapt)
-(require 'develock)
-;; (require 'google-c-style)
-
-
-(defun linux-c-mode ()
-  "C mode with adjusted defaults for use with the Linux kernel."
-  (interactive)
-  (c-mode)
-  (c-set-style "linux")
-  (develock-mode -1)
-  (setq c-basic-offset 8))
-
-(setq auto-mode-alist (cons '("/usr/src/linux.*/.*\\.[ch]$" . linux-c-mode)
-			    auto-mode-alist))
-
-
-(defadvice c-indent-line
-  (before indent-and-forward-tempo activate)
-  (when (my-inside-javadoc-comment)
-    (tempo-forward-mark)))
-
-
-(defun my-c-mode ()
-  (doxymacs-mode)
-  (c-set-style "linux")
-  (local-set-key "\C-cc" 'my-c-comment-function)
-  (eldoc-mode)
-  (local-set-key [ (control tab) ] 'eassist-switch-h-cpp)
-  (turn-on-filladapt-mode)	      ;This cause problems with space key in
-  (auto-fill-mode t))		      ;lines which begins with /*
-
-
-
-(add-hook 'c-mode-hook 'my-c-mode)
-(add-hook 'c++-mode-hook 'my-c-mode)
-
-
-(require 'eassist)
-(setq eassist-header-switches
-      '(("h" "cpp" "cc" "c") ("hpp" "cpp" "cc")
-	("cpp" "h" "hpp") ("c" "h") ("C" "H")
-	("H" "C" "CPP" "CC") ("cc" "h" "hpp")))
-
-
-
-(defun my-c-comment-function ()
-  "Comment a region in c-mode"
-  (interactive)
-  (unless (and transient-mark-mode mark-active)
-    (error "The mark is not set now"))
-
-  (save-excursion
-    (save-restriction
-      (narrow-to-region (region-beginning) (region-end))
-      (goto-char (point-min))
-
-      (while (search-forward "/*" nil t)
-	(replace-match "/\\*" nil t))
-
-      (goto-char (point-min))
-      (while (search-forward "*/" nil t)
-	(replace-match "*\\/" nil t))
-
-      (goto-char (point-min))
-      (while (< (point) (point-max))
-	(move-to-column 0)
-	(insert "/*")
-	(if (< fill-column
-	       (- (line-end-position) (line-beginning-position)))
-	    (end-of-line)
-	  (move-to-column fill-column t))
-	(insert "*/")
-	(forward-line 1)))))
 
 ;; ***************************************************************************
 ;; assembler modes
@@ -624,72 +311,6 @@ from semantic"
 (add-to-list 'auto-mode-alist '(".*\.asm?$" . z80-mode))
 (add-to-list 'auto-mode-alist '(".*\.[sS]$" . gas-mode))
 
-;; ****************************************************************************
-;; GUD
-;; ****************************************************************************
-
-(require 'gdb-mi)
-(require 'highline)
-
-(global-set-key [f11] 'gdb)
-
-
-
-(defvar my-gdb-line nil
-  "Last line highlithed by gdb")
-
-
-
-(defvar my-gdb-file nil
-  "Last file highlithed by gdb")
-
-
-
-(defun my-gdb-highline-file-line (file line light)
-  (with-selected-window gdb-source-window
-    (find-file file)
-    (goto-char (point-min))
-    (forward-line (1- line))
-    (setq my-gdb-line line)
-    (setq my-gdb-file file)
-    (if light
-	(highline-highlight-current-line)
-      (highline-unhighlight-current-line))))
-
-(defadvice gdb-reset
-  (after my-gdb-reset activate)
-  (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
-
-
-
-(add-hook 'gdb-stopped-hooks
-	  '(lambda (arg)
-	     (let*
-		 ((frame (cdr (nth 2 arg)))
-		  (line (bindat-get-field frame 'line))
-		  (file (bindat-get-field frame 'fullname)))
-	       (when (and (stringp line) (stringp file))
-		 (when (and my-gdb-file my-gdb-line)
-		   (my-gdb-highline-file-line my-gdb-file my-gdb-line nil))
-		 (my-gdb-highline-file-line file (string-to-number line) t)))))
-
-
-
-(add-hook 'gdb-mode-hook
-	  '(lambda ()
-	     (iy/winring-jump-or-create "GUD")
-	     (define-key gud-mode-map [f5] 'gud-step)
-	     (define-key gud-mode-map [f6] 'gud-next)
-	     (define-key gud-mode-map [f7] 'gud-finish)
-	     (define-key gud-mode-map [f8] 'gud-cont)
-	     (define-key gud-mode-map [f9] 'gud-until)
-	     (define-key gud-minor-mode-map [f5] 'gud-step)
-	     (define-key gud-minor-mode-map [f6] 'gud-next)
-	     (define-key gud-minor-mode-map [f7] 'gud-finish)
-	     (define-key gud-minor-mode-map [f8] 'gud-cont)
-	     (define-key gud-minor-mode-map [(control *)]
-	       'gud-tooltip-dereference)
-	     (define-key gud-minor-mode-map [f9] 'gud-until)))
 
 (when (or (eq system-type 'windows-nt)
 	  (eq system-type 'cygwin))
@@ -697,71 +318,6 @@ from semantic"
     (require 'cygwin-mount)
     (cygwin-mount-activate)))
 
-
-
-
-
-;; ****************************************************************************
-;; Lisp
-;; ****************************************************************************
-
-(require 'compile)
-(require 'bytecomp)
-
-
-(global-set-key "\C-ci"
-		'(lambda nil
-		   (interactive)
-		   (find-file "~/.emacs.d/init.el")))
-
-(add-hook 'after-save-hook
-	  '(lambda nil
-	     (if (or (string= (buffer-file-name)
-			      (expand-file-name
-			       (concat default-directory ".emacs")))
-		     (string= (buffer-file-name)
-			      (expand-file-name
-			       (concat default-directory "init.el"))))
-		 (byte-compile-file (buffer-file-name)))))
-
-
-(add-hook 'emacs-lisp-mode-hook
-	  (lambda ()
-	    (local-set-key [(return ) ] 'newline-and-indent)
-	    (eldoc-mode)
-	    (auto-fill-mode t)))
-
-
-
-;; ****************************************************************************
-;; window stuff
-;; ****************************************************************************
-
-
-(defun select-next-window ()
-  "Switch to the next window"
-  (interactive)
-  (select-window (next-window)))
-
-(defun select-previous-window ()
-  "Switch to the previous window"
-  (interactive)
-  (select-window (previous-window)))
-
-
-(global-set-key [(control shift up)] 'enlarge-window)
-(global-set-key [(control shift down)] 'shrink-window)
-(global-set-key [(control shift left)] 'enlarge-window-horizontally)
-(global-set-key [(control shift right)] 'shrink-window-horizontally)
-
-
-
-(global-set-key [(control shift up)] 'enlarge-window)
-(global-set-key [(control shift down)] 'shrink-window)
-(global-set-key [(control shift left)] 'enlarge-window-horizontally)
-(global-set-key [(control shift right)] 'shrink-window-horizontally)
-(global-set-key [(meta right)] 'select-next-window)
-(global-set-key [(meta left)]  'select-previous-window)
 
 
 
@@ -850,53 +406,6 @@ from semantic"
 (define-auto-insert "\.in$" "Makefile.in")
 
 
-;; ****************************************************************************
-;; Jump to point
-;; ****************************************************************************
-
-(global-set-key [(shift f1)] '(lambda ()
-				(interactive)
-				(point-to-register 1)))
-
-
-(global-set-key [(shift f2)] '(lambda ()
-				(interactive)
-				(point-to-register 2)))
-
-
-(global-set-key [(shift f3)] '(lambda ()
-				(interactive)
-				(point-to-register 3)))
-
-
-(global-set-key [(shift f4)] '(lambda ()
-				(interactive)
-				(point-to-register 4)))
-
-
-
-(global-set-key [(control f1)] '(lambda ()
-				  (interactive)
-				  (jump-to-register 1)))
-
-
-(global-set-key [(control f2)] '(lambda ()
-				  (interactive)
-				  (jump-to-register 2)))
-
-
-(global-set-key [(control f3)] '(lambda ()
-				  (interactive)
-				  (jump-to-register 3)))
-
-
-(global-set-key [(control f4)] '(lambda ()
-				  (interactive)
-				  (jump-to-register 4)))
-
-
-
-
 
 ;; ****************************************************************************
 ;; Questions
@@ -928,76 +437,9 @@ from semantic"
   (move-to-column (string-to-number (read-from-minibuffer "Goto column: "))))
 
 
-;; ****************************************************************************
-;; yasnippet
-;; ****************************************************************************
-
-(require 'yasnippet)
-(yas/initialize)
-(yas/load-directory "~/.emacs.d/yasnippets/")
-
-;;Modification for allowing flymake and yasnippet runnit at same time
-
-
-(defvar flymake-is-active-flag nil)
-
-(defadvice yas/expand-snippet
-  (before inhibit-flymake-syntax-checking-while-expanding-snippet activate)
-  (setq flymake-is-active-flag
-	(or flymake-is-active-flag
-	    (assoc-default 'flymake-mode (buffer-local-variables))))
-  (when flymake-is-active-flag
-    (flymake-mode-off)))
-
-
-(add-hook 'yas/after-exit-snippet-hook
-	  '(lambda ()
-	     (when flymake-is-active-flag
-	       (flymake-mode-on)
-	       (setq flymake-is-active-flag nil))))
 
 
 
-
-;;*****************************************************************************
-;; Ediff
-;;*****************************************************************************
-
-(require 'ediff)
-
-;; Ediff
-;; =====
-;; When you run Ediff on the Develock'ed buffers, you may feel
-;; everything is in confusion.	For such a case, the following hooks
-;; may help you see diffs clearly.
-;;
-
-(defvar develock-mode-suspended nil)
-
-(add-hook
- 'ediff-prepare-buffer-hook
- (lambda nil
-   (if (and (boundp 'font-lock-mode) font-lock-mode
-	    (boundp 'develock-mode) develock-mode)
-       (progn
-	 (develock-mode 0)
-	 (set (make-local-variable 'develock-mode-suspended) t)))))
-
-(add-hook
- 'ediff-cleanup-hook
- (lambda nil
-   (let ((buffers (list ediff-buffer-A ediff-buffer-B ediff-buffer-C)))
-     (save-excursion
-       (while buffers
-	 (if (buffer-live-p (car buffers))
-	     (progn
-	       (set-buffer (car buffers))
-	       (if (and (boundp 'develock-mode-suspended)
-			develock-mode-suspended)
-		   (progn
-		     (develock-mode 1)
-		     (makunbound 'develock-mode-suspended)))))
-	 (setq buffers (cdr buffers)))))))
 
 
 ;;*****************************************************************************

@@ -15,7 +15,7 @@
 @copying
 This manual documents @cedet{}, a collection of other tools.
 
-Copyright @copyright{} 2007, 2008, 2009, 2010, 2011 Eric M. Ludlam
+Copyright @copyright{} 2007, 2008, 2009, 2010, 2011, 2012 Eric M. Ludlam
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -193,7 +193,7 @@ variables.
 @eieio{} contains the core object library for @cedet{}.  You can
 define classes, and methods for those classes using @i{CLOS} style
 syntax.  Objects can be customized using the Emacs customization tool,
-which allows easy creation of dialog box style UIs.  A series of bases
+which allows easy creation of dialog box style UIs.  A series of base
 classes allows the creation of Emacs centric tools, wrapping up the
 details of persistence, instance tracking, or instance inheritance.
 
@@ -221,7 +221,7 @@ search utility.  Code analysis and completion generation is also
 provided.  @semantic{} includes tools such as speedbar interfaces to
 tags, context analysis, and completion options, Popup smart
 completion, tag decoration, and support for a wide range of Emacs
-tools such as Imenu, wich-func, hippie-expand, isearch, and
+tools such as Imenu, which-func, hippie-expand, isearch, and
 cut/copy/paste.
 
 For high level overviews, configuration advice, etc, please read
@@ -293,7 +293,7 @@ Makefiles or Automake files, and provides menus and keybindings for
 compiling any target, debugging programs by providing the arguments to
 your debugger, and will make sure you don't forget to include some
 file in your targets.  It will help you build distribution files, and
-post them to the web (such as with Source Forge).  @ede{} will track
+post them to the web (such as with SourceForge).  @ede{} will track
 revision numbers and make sure they are updated in multiple places.
 
 Projects that are merely wrapped with @ede{} can support a small
@@ -855,12 +855,12 @@ android projects:
 
 @table @key
 @item C-c . e
-This will always jump to the AndroidManifest.xml file, which doubles
-as the 
+This will always jump to the AndroidManifest.xml file.
 @item C-c . c
 @itemx C-c . C
 This will compile your project using ant.  To change what type of
-build you do, you will need to change the current configuration.
+build you do, you will need to change the current configuration.  You
+can select a configuration such as install or release from the Project menu.
 @item C-c . D
 Debug your project.  This will also start ddms, the debug proxy for
 your android emulator or device.
@@ -925,7 +925,7 @@ Visit @var{SAMPLE} code in the Android @var{SDK} samples directory.
 @section Android support for SRecode
 
 You can create macros for use with android.  Add the :android argument
-to your templates to get some android specific features.  See 
+to your templates to get some android specific features.
 
 @node GNU Global
 @chapter GNU Global
@@ -1078,7 +1078,7 @@ You can wrap any @cedet{} / CScope configurations in your
 CScope is detected by the presense of a @file{cscope.out} file at the
 ROOT of your current project, as specified by @ede{}.  CScope the program
 supports multiple @file{cscope.out} files spread out through your
-project, but this is not detecte by @cedet{}.  It will also use a
+project, but this is not detected by @cedet{}.  It will also use a
 @file{cscope.out} in the same directory as your sources if you do not
 use @ede{}
 
